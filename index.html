@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ESP32-Based Intelligent Multi-Port Battery Management System</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 :root{--bg:#060d18;--card:#0b1828;--line:#1b3048;--accent:#38bdf8;--text:#e6eef7;--muted:#8fa3b8}
@@ -13,8 +12,21 @@
 html{scroll-behavior:smooth}
 body{margin:0;background:radial-gradient(1000px 500px at 10% -5%,#0e2a40,transparent 60%),var(--bg);color:var(--text);font:1rem/1.75 Inter,sans-serif}
 #net{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* Top site navigation (same as the main portfolio) */
+.site-nav{position:sticky;top:0;z-index:300;background:rgba(6,13,24,.86);backdrop-filter:blur(8px);border-bottom:1px solid rgba(140,180,230,.16)}
+.site-nav .nav-container{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:.95rem 1.5rem;gap:1rem}
+.site-nav .nav-brand{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:-.01em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:.4rem;white-space:nowrap}
+.site-nav .accent-dot{color:var(--accent);display:inline-block;animation:navPulse 2.4s ease-in-out infinite}
+.site-nav .nav-links{display:flex;gap:1.4rem;list-style:none;margin:0;padding:0;overflow-x:auto}
+.site-nav .nav-links a{text-decoration:none;color:#8399b8;font:500 .86rem/1.65 "IBM Plex Sans",sans-serif;letter-spacing:.01em;transition:color .2s;white-space:nowrap}
+.site-nav .nav-links a:hover{color:var(--accent)}
+@keyframes navPulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media(max-width:640px){.site-nav .nav-links{gap:.9rem}.site-nav .nav-links a{font-size:.8rem}}
+@media(prefers-reduced-motion:reduce){.site-nav .accent-dot{animation:none}}
+
 .wrap{position:relative;z-index:1;max-width:1040px;margin:auto;padding:0 1.25rem}
-nav{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:1.5rem 0}
+.subnav{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:1.5rem 0}
 .back,.share{color:var(--accent);font:500 .85rem "JetBrains Mono",monospace;text-decoration:none}
 .share{display:flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--accent);border-radius:8px;background:#0b1828;cursor:pointer}
 .share svg{width:19px;height:19px}
@@ -63,15 +75,30 @@ figure img{height:auto;min-height:0;max-height:450px;aspect-ratio:4/3;object-fit
 
 <body>
 <canvas id="net"></canvas>
+
+<nav class="site-nav">
+<div class="nav-container">
+<a href="https://nshakib22ruet.github.io/#top" class="nav-brand">Shakib<span class="accent-dot">.</span></a>
+<ul class="nav-links">
+<li><a href="https://nshakib22ruet.github.io/#about">About</a></li>
+<li><a href="https://nshakib22ruet.github.io/#skills">Skills</a></li>
+<li><a href="https://nshakib22ruet.github.io/#portfolio">Projects &amp; Tasks</a></li>
+<li><a href="https://nshakib22ruet.github.io/#publications">Publications</a></li>
+<li><a href="https://nshakib22ruet.github.io/#cv">CV</a></li>
+<li><a href="https://nshakib22ruet.github.io/#contact">Contact</a></li>
+</ul>
+</div>
+</nav>
+
 <div class="wrap">
 
-<nav>
-<a class="back" href="https://nshakib22ruet.github.io/">← Back to portfolio</a>
+<div class="subnav">
+<a class="back" href="https://nshakib22ruet.github.io/#portfolio">← Back to Projects</a>
 <button class="share" onclick="shareProject()" aria-label="Share project">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.4m-6.6 7 6.6 4.4"/></svg>
 Share Project
 </button>
-</nav>
+</div>
 <div id="shareStatus" aria-live="polite"></div>
 
 <div class="hero">
