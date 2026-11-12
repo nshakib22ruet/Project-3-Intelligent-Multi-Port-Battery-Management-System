@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Md. Najmus Shakib - Project Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14302f;--bg:#f5f7f6;--card:#fff;--line:#d5dfdc;--accent:#c98a0b;--soft:#e4eeeb;--muted:#4d6361}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.65 "IBM Plex Sans",system-ui,sans-serif}
+header{background:var(--ink);color:#f5f7f6;padding:3.5rem 1.25rem 3rem;text-align:center}
+header h1{font:600 clamp(1.6rem,4vw,2.5rem)/1.2 "IBM Plex Serif",Georgia,serif;max-width:22ch;margin:0 auto 1rem}
+header p{margin:.2rem 0;color:#c9d8d5}
+.members{margin-top:1.25rem;font-weight:500;color:#fff}
+main{max-width:860px;margin:0 auto;padding:1rem 1.25rem 3rem}
+section{margin-top:2.5rem}
+h2{font:600 1.5rem/1.3 "IBM Plex Serif",Georgia,serif;margin:0 0 .75rem;padding-left:.75rem;border-left:4px solid var(--accent)}
+p{max-width:70ch}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.75rem}
+figure img{display:block;width:100%;height:auto;border-radius:3px}
+figcaption{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+ul.parts{columns:2;column-gap:2rem;padding-left:1.2rem}
+ul.parts li{margin-bottom:.3rem}
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:0}
+ol.steps li{counter-increment:s;position:relative;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.75rem 1rem .75rem 3.2rem;margin-bottom:.6rem}
+ol.steps li::before{content:counter(s);position:absolute;left:.8rem;top:.75rem;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--ink);color:#fff;font-size:.85rem;font-weight:600;display:grid;place-items:center}
+ol.steps b{font-weight:600}
+.summary{background:var(--soft);border-left:4px solid var(--ink);padding:1rem 1.25rem;border-radius:0 6px 6px 0;margin-top:1rem}
+.files{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem}
+.files a{display:block;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1rem;color:inherit;text-decoration:none}
+.files a:hover,.files a:focus-visible{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:2px}
+.files strong{display:block;font-weight:600}
+.files span{font-size:.9rem;color:var(--muted)}
+footer{background:var(--ink);color:#c9d8d5;padding:2rem 1.25rem;text-align:center}
+footer h3{font:600 1.3rem "IBM Plex Serif",Georgia,serif;color:#fff;margin:0 0 .5rem}
+footer a{color:#f2c25b}
+@media(max-width:600px){ul.parts{columns:1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ESP32-Based Intelligent Multi-Port Battery Management System</h1>
+  <p>Department of Electrical &amp; Electronic Engineering (EEE)</p>
+  <p>Rajshahi University of Engineering &amp; Technology (RUET)</p>
+  <div class="members">
+    Project Members:<br>
+    1. Md. Najmus Shakib
+    <!-- Add more members here, e.g. <br>2. Name (ID: xxxxxxx) -->
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2>Experimental Setup</h2>
+  <figure>
+    <img src="Images/Setup%20image1.jpeg" alt="Full hardware setup of the multi-port battery management system">
+    <figcaption>Full hardware setup.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Abstract</h2>
+  <p>This project presents an ESP32-based intelligent multi-port battery management system that charges and supervises several batteries at once. The ESP32 reads voltage, current and temperature from INA219 and DS18B20 sensors, switches each charging path through relays in manual or automatic mode, and sends the data to a dashboard over Bluetooth. From these readings the software estimates battery percentage, charging current, internal resistance and temperature status, and a machine learning model can classify battery condition to support health assessment and early detection of degradation.</p>
+</section>
+
+<section>
+  <h2>Required Components</h2>
+  <ul class="parts">
+    <li>220 V AC mains supply</li>
+    <li>Step-down transformer</li>
+    <li>Bridge rectifier</li>
+    <li>Filter capacitor</li>
+    <li>L7805CV 5 V regulator</li>
+    <li>LM2596 buck converter</li>
+    <li>ESP32 controller</li>
+    <li>Relay module</li>
+    <li>INA219 voltage/current sensors</li>
+    <li>DS18B20 temperature sensors (2)</li>
+    <li>Batteries under charge</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Circuit Diagram &amp; Connection Guideline</h2>
+  <p>The wiring diagram and connection guideline are provided as a PDF.</p>
+  <div class="files">
+    <a href="Diagram%20and%20cinnection%20guideline.pdf" target="_blank" rel="noopener">
+      <strong>Open diagram and connection guideline (PDF)</strong>
+      <span>Opens the PDF from this repository</span>
+    </a>
+  </div>
+</section>
+
+<section>
+  <h2>Working Principle</h2>
+  <ol class="steps">
+    <li><b>AC Power Input:</b> The system receives 220 V AC mains electricity as its primary power source.</li>
+    <li><b>Voltage Transformation:</b> A step-down transformer reduces the high AC mains voltage to a lower AC voltage suitable for the system.</li>
+    <li><b>AC-to-DC Conversion:</b> A bridge rectifier converts the transformer's AC output into DC voltage.</li>
+    <li><b>DC Filtering:</b> A filter capacitor smooths the rectified DC voltage to provide a more stable power supply.</li>
+    <li><b>Voltage Regulation:</b> An L7805CV regulator provides regulated 5 V for the relay module, while an LM2596 buck converter adjusts the charging voltage for Battery Port 2.</li>
+    <li><b>ESP32 Controller:</b> The ESP32 acts as the central controller, managing sensor readings, relay operations, battery monitoring and communication.</li>
+    <li><b>Relay-Based Control:</b> The ESP32 controls individual relay channels to connect or disconnect the charging paths according to manual or automatic operating modes.</li>
+    <li><b>Voltage and Current Monitoring:</b> INA219 sensors measure the voltage and current of the connected battery charging paths.</li>
+    <li><b>Temperature Monitoring:</b> Two DS18B20 temperature sensors measure battery temperature to monitor thermal conditions during charging.</li>
+    <li><b>Real-Time Data Collection:</b> The ESP32 continuously collects voltage, current and temperature measurements from the sensors.</li>
+    <li><b>Battery Parameter Calculation:</b> The software processes sensor readings to estimate battery voltage percentage, charging current, internal resistance (when valid measurement conditions are available) and temperature status.</li>
+    <li><b>Battery Condition Assessment:</b> The system evaluates battery behaviour using voltage, current variation, estimated resistance and temperature to identify possible battery degradation.</li>
+    <li><b>Machine Learning Analysis:</b> The collected battery data can be processed by a machine learning model to classify battery conditions and support intelligent battery health assessment.</li>
+    <li><b>User Interface and Communication:</b> A dashboard displays real-time battery information, charging status, temperature, estimated health and relay status, with Bluetooth communication between the ESP32 and the monitoring interface where implemented.</li>
+    <li><b>Intelligent Battery Management:</b> Finally, the system uses sensor measurements, programmed control logic and machine learning predictions to manage multiple battery charging ports, provide protection alerts and improve charging supervision.</li>
+  </ol>
+  <div class="summary"><b>Overall working principle:</b> The system integrates power conversion, ESP32-based control, sensor monitoring, relay switching, software-based battery analysis and machine learning to develop an intelligent multi-port battery management platform.</div>
+</section>
+
+<section>
+  <h2>Monitoring Dashboard</h2>
+  <figure>
+    <img src="Images/Web%20image.png" alt="Battery monitoring dashboard showing port status, voltage, current and temperature">
+    <figcaption>Web dashboard interface.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Code &amp; Project Files</h2>
+  <p>Each link opens the file directly from the GitHub repository.</p>
+  <div class="files">
+    <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Project%20IDE_%20code.ino" target="_blank" rel="noopener">
+      <strong>ESP32 Arduino IDE code (.ino)</strong>
+      <span>Open the source code on GitHub</span>
+    </a>
+    <!-- Replace the file name below with the full name of your dashboard file -->
+    <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Smart_Battery_Dashboard_Improved_Resistance.html" target="_blank" rel="noopener">
+      <strong>Dashboard source code</strong>
+      <span>Open the dashboard file on GitHub</span>
+    </a>
+    <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System" target="_blank" rel="noopener">
+      <strong>Full repository</strong>
+      <span>All files, images and README</span>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <h3>Md. Najmus Shakib</h3>
+  <p>EEE Student at RUET, Rajshahi, Bangladesh</p>
+  <p><a href="https://github.com/nshakib22ruet" target="_blank" rel="noopener">github.com/nshakib22ruet</a></p>
+  <p>&copy; Md. Najmus Shakib. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
