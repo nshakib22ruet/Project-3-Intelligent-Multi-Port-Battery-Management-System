@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Smart Battery Tester — Synchronized 1-Sec Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070f1c;--grid:#0c1728;--panel:#0d1829;--panel2:#111f33;--border:#1d3350;--soft:#16283f;--text:#e6eefb;--muted:#8aa6c8;--muted2:#62809f;--blue:#3f8ae0;--bb:#5fb0ff;--green:#35c98d;--gd:#1f8f63;--amber:#e0ab54;--red:#e2685a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/100% 26px,linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/26px 100%,var(--bg);color:var(--text);font-family:"Space Grotesk","Segoe UI",sans-serif;min-height:100%}
+.mono,code{font-family:"JetBrains Mono",ui-monospace,monospace}
+.app{max-width:1400px;margin:0 auto;padding:10px 14px 24px;display:grid;gap:12px}
+header.top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:8px}
+h1{font-size:clamp(15px,1.6vw,19px);margin:0;font-weight:700}
+.kicker{font:10px "JetBrains Mono",monospace;color:var(--muted2);margin:0}.kicker span{color:var(--bb)}
+
+.conn{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);padding:10px 14px}
+.field-group{display:flex;align-items:center;gap:8px}
+.field-group label{font:700 10px "JetBrains Mono",monospace;color:var(--bb);letter-spacing:.05em}
+.btn{font:600 10.5px "JetBrains Mono",monospace;padding:6px 11px;border:1px solid var(--blue);background:var(--blue);color:#061020;cursor:pointer;white-space:nowrap}
+.btn.sec{background:transparent;color:var(--text);border-color:var(--border);font-weight:500}
+.btn.on{background:var(--green);border-color:var(--green);color:#04150e}
+.btn.off{background:var(--red);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.status{display:flex;align-items:center;gap:6px;font:10px "JetBrains Mono",monospace;color:var(--muted);flex:1 1 200px;min-width:0;margin-left:auto}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted2);flex-shrink:0}
+.dot.ok{background:var(--green);box-shadow:0 0 0 3px rgba(53,201,141,.22)}.dot.err{background:var(--red)}.dot.busy{background:var(--amber);animation:p 1s infinite}
+@keyframes p{50%{opacity:.35}}
+
+.seg{display:inline-flex;border:1px solid var(--border);background:var(--panel2);padding:2px;gap:2px}
+.seg button{font:9.5px "JetBrains Mono",monospace;padding:5px 12px;background:transparent;color:var(--muted);border:none;cursor:pointer;transition:all .15s}
+.seg button.active{background:var(--blue)!important;color:#fff!important;font-weight:700;box-shadow:0 0 10px rgba(63,138,224,0.5)}
+
+.single-port-container{display:grid;grid-template-columns:1fr;gap:10px}
+.card{background:var(--panel);border:1px solid var(--blue);padding:12px 14px 14px;display:grid;gap:10px;position:relative}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--ac)}
+.card[hidden]{display:none !important;}
+
+.head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.name{font-weight:700;font-size:15px;display:flex;gap:8px;align-items:center}
+.chid{font:9.5px "JetBrains Mono",monospace;color:var(--muted2);display:block;margin-top:2px}
+.tag{font:8.5px "JetBrains Mono",monospace;padding:2px 6px;border:1px solid var(--soft);color:var(--muted2)}
+.tag.on{color:var(--green);border-color:var(--gd);background:rgba(53,201,141,.12)}
+
+.body{display:flex;gap:16px;align-items:center}
+.batt{display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;flex-shrink:0}
+.batt svg{width:100%;height:110px}
+.bf.low{fill:var(--red)}.bf.mid{fill:var(--amber)}.bf.high{fill:var(--green)}
+.pct{font-size:18px;font-weight:700}.lbl{font-size:8px;color:var(--muted2)}
+.reads{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px 12px;align-content:start}
+.reads dt{font-size:9px;color:var(--muted2)}
+.reads dd{margin:1px 0 0;font:600 13px "JetBrains Mono",monospace}
+
+.spark-box{border-top:1px solid var(--soft);padding-top:8px;display:grid;gap:4px}
+.spark-box .sp-title{font:9.5px "JetBrains Mono",monospace;color:var(--muted2);letter-spacing:.05em}
+.spark-box canvas{width:100%;height:95px;display:block;background:var(--panel2);border:1px solid var(--border)}
+
+.ctl{border-top:1px solid var(--soft);padding-top:9px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ctl .sl .tl{display:flex;justify-content:space-between;margin-bottom:3px}
+.ctl label{font-size:9px;color:var(--muted2)}.ctl .v{font:10px "JetBrains Mono",monospace;color:var(--bb)}
+.card[data-mode=manual] .auto-only,.card[data-mode=auto] .man-only{display:none}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--border);margin:6px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--blue);border:1px solid var(--bb);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue);border:1px solid var(--bb)}
+.foot{border-top:1px solid var(--soft);padding-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sw{display:flex;align-items:center;gap:8px}.sw .l{font-size:11px;color:var(--muted)}
+.tg{width:42px;height:22px;border:1px solid var(--border);background:var(--panel2);position:relative;cursor:pointer;padding:0}
+.tg i{position:absolute;top:3px;left:3px;width:14px;height:14px;background:var(--muted2);transition:left .15s}
+.tg.on{border-color:var(--gd)}.tg.on i{left:23px;background:var(--green)}
+.tg.small{width:36px;height:18px}.tg.small i{width:10px;height:10px}.tg.small.on i{left:21px}
+.badge{font:10.5px "JetBrains Mono",monospace;padding:3px 10px;border:1px solid;white-space:nowrap}
+.badge.healthy{color:var(--green);border-color:var(--gd);background:rgba(53,201,141,.12)}
+.badge.normal{color:var(--bb);border-color:var(--blue);background:rgba(63,138,224,.14)}
+.badge.degraded{color:var(--amber);border-color:var(--amber);background:rgba(224,171,84,.14)}
+.badge.abnormal{color:var(--red);border-color:var(--red);background:rgba(226,104,90,.14)}
+.badge.idle{color:var(--muted2);border-color:var(--soft)}
+.msg{font:10px "JetBrains Mono",monospace;color:var(--muted);line-height:1.5}
+
+.quality{background:var(--panel);border:1px solid var(--border);padding:12px 14px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px 24px;align-items:center}
+.quality h2{font-size:13px;margin:0}.quality .sub{font-size:10px;color:var(--muted2);margin:2px 0 0}
+.q-verdict{font-size:clamp(20px,2.6vw,28px);font-weight:700;margin:9px 0 4px}
+.q-verdict.g{color:var(--green)}.q-verdict.a{color:var(--amber)}.q-verdict.r{color:var(--red)}.q-verdict.n{color:var(--muted)}
+.q-detail{font:10.5px "JetBrains Mono",monospace;color:var(--muted);line-height:1.55}
+.q-right{display:grid;gap:10px}
+.leds{display:flex;gap:clamp(8px,2vw,18px);justify-content:center}
+.led{display:grid;justify-items:center;gap:6px;flex:1;max-width:84px}
+.led b{width:100%;max-width:46px;aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--c) 14%,#0a121e);border:1px solid color-mix(in srgb,var(--c) 35%,#0a121e);transition:background .25s,box-shadow .25s}
+.led span{font:9px "JetBrains Mono",monospace;color:var(--muted2);text-align:center}
+.led.on b{background:radial-gradient(circle at 35% 30%,#fff9 0,var(--c) 38%);border-color:var(--c);box-shadow:0 0 10px 2px var(--c),0 0 26px 7px color-mix(in srgb,var(--c) 55%,transparent)}
+.led.on span{color:var(--text)}
+.q-bar{height:4px;background:var(--border)}.q-bar i{display:block;height:100%;width:0;background:var(--bb);transition:width .4s}
+.q-time{font:10px "JetBrains Mono",monospace;color:var(--muted2);text-align:center}
+
+
+.assessment{background:var(--panel);border:1px solid var(--border);padding:12px 14px;margin-top:10px}
+.assessment h2{font-size:13px;margin:0 0 4px}
+.assessment .sub{font-size:10px;color:var(--muted2);margin:0 0 10px}
+.diag-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.diag-item{background:var(--panel2);border:1px solid var(--soft);padding:9px;min-width:0}
+.diag-item span{display:block;color:var(--muted2);font:9px "JetBrains Mono",monospace;text-transform:uppercase}
+.diag-item b{display:block;color:var(--text);font:11px "JetBrains Mono",monospace;margin-top:5px;overflow-wrap:anywhere}
+.diag-note{font:10px "JetBrains Mono",monospace;color:var(--muted);line-height:1.5;margin-top:9px}
+@media(max-width:640px){.diag-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.quality{grid-template-columns:1fr}}
+
+.charts{background:var(--panel);border:1px solid var(--border);padding:10px 12px 12px;display:grid;gap:8px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.chead h2{font-size:13px;margin:0}.chead .sub{font-size:10px;color:var(--muted2);margin:0}
+.cgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.cbox{border:1px solid var(--soft);background:var(--panel2);padding:6px 8px 4px}
+.cbox.wide{grid-column:1/-1}
+.cbox h3{font-size:10.5px;margin:0 0 3px;color:var(--muted);font-weight:500;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cbox canvas{width:100%;height:190px;display:block}
+.cbox.wide canvas{height:250px}
+.key{display:inline-flex;gap:12px;font:10px "JetBrains Mono",monospace}
+.key i{display:inline-block;width:10px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+
+.modal{position:fixed;inset:0;background:rgba(3,8,16,.72);display:flex;align-items:center;justify-content:center;z-index:20;padding:14px}
+.modal[hidden]{display:none}
+.dlg{background:var(--panel);border:1px solid var(--blue);padding:18px;width:min(400px,100%);display:grid;gap:12px}
+.dlg h2{margin:0;font-size:16px}.dlg p{margin:0;font-size:11px;color:var(--muted);line-height:1.5}
+.dlg .row{display:grid;gap:4px}.dlg .row label{font-size:10px;color:var(--muted2)}
+.dlg input,.dlg select{width:100%;padding:8px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font:11px "JetBrains Mono",monospace}
+.dlg .acts{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Smart Battery Tester Dashboard</h1>
+    <p class="kicker">RUET &middot; EEE &middot; <span>1-SEC SYNC &middot; 4x90 BUFFER &middot; RELAY AUTOMATION</span></p>
+  </header>
+
+  <section class="conn">
+    <button class="btn" id="ble-connect" type="button">Pair ESP32</button>
+    <button class="btn sec" id="ble-disconnect" type="button" disabled>Disconnect</button>
+    <button class="btn off" id="main-power-btn" type="button">Main Power: OFF (RELAY1)</button>
+    
+    <div class="field-group" style="margin-left: 10px;">
+      <label>SELECT ACTIVE PORT:</label>
+      <div class="seg" id="port-selector">
+        <button type="button" data-p="0" class="active">Port A (INA1 / RELAY2)</button>
+        <button type="button" data-p="1">Port B (INA2 / RELAY3)</button>
+      </div>
+    </div>
+    
+    <button class="btn sec" id="stop-all" type="button">Stop Charger</button>
+    <div class="status"><span class="dot" id="dot"></span><span id="status-text">Not connected</span></div>
+  </section>
+
+  <section class="single-port-container" id="ports"></section>
+
+  <section class="quality" aria-live="polite">
+    <div>
+      <h2 id="q-port">Port A — Battery Quality</h2>
+      <p class="sub">Verdict computed after 90 valid sensor samples using chemistry-aware voltage, temperature, sag and available resistance indicators.</p>
+      <div class="q-verdict n" id="q-verdict">No Test Running</div>
+      <div class="q-detail" id="q-detail">Select a port above and start a test to calculate quality.</div>
+    </div>
+    <div class="q-right">
+      <div class="leds" id="q-leds">
+        <div class="led" style="--c:#35c98d"><b></b><span>Excellent</span></div>
+        <div class="led" style="--c:#9fd44a"><b></b><span>Good</span></div>
+        <div class="led" style="--c:#e8d44d"><b></b><span>Fair</span></div>
+        <div class="led" style="--c:#e8893a"><b></b><span>Poor</span></div>
+        <div class="led" style="--c:#e2685a"><b></b><span>Bad</span></div>
+      </div>
+      <div class="q-bar"><i id="q-bar"></i></div>
+      <div class="q-time" id="q-time"></div>
+    </div>
+  </section>
+
+  <section class="assessment" aria-live="polite">
+    <h2 id="diag-title">Battery Electrical Condition</h2>
+    <p class="sub">Chemistry-aware indicators from measured INA219 voltage/current and DS18B20 temperature. These are estimates, not a certified SOH test.</p>
+    <div class="diag-grid">
+      <div class="diag-item"><span>Operating state</span><b id="diag-state">Waiting for Measurements</b></div>
+      <div class="diag-item"><span>Resting voltage</span><b id="diag-rest">Waiting for Resting Voltage</b></div>
+      <div class="diag-item"><span>Loaded voltage</span><b id="diag-load">Not Available</b></div>
+      <div class="diag-item"><span>Voltage sag</span><b id="diag-sag">Not Available</b></div>
+      <div class="diag-item"><span>Voltage recovery</span><b id="diag-recovery">Not Available</b></div>
+      <div class="diag-item"><span>Dynamic resistance</span><b id="diag-resistance">Insufficient Current Variation</b></div>
+      <div class="diag-item"><span>Voltage condition</span><b id="diag-voltage">Waiting for Measurements</b></div>
+    </div>
+    <div class="diag-note" id="diag-note">Resting voltage requires a stable low-current period. No relay switching is performed for this assessment.</div>
+  </section>
+
+  <section class="charts">
+    <div class="chead">
+      <div>
+        <h2 id="chart-title">Port A — Charging Analysis &amp; Quadratic Forecast</h2>
+        <p class="sub">Solid = Measured Telemetry &middot; Dotted = Quadratic Curve ($y = ax^2 + bx + c$)</p>
+      </div>
+    </div>
+    <div class="cgrid">
+      <div class="cbox">
+        <h3>Charge % vs Time (1-Sec Interval &amp; Quadratic Curve) <span id="eta-lbl"></span></h3>
+        <canvas id="cv-s"></canvas>
+      </div>
+      <div class="cbox">
+        <h3>Temperature (&deg;C) vs Time</h3>
+        <canvas id="cv-t"></canvas>
+      </div>
+      <div class="cbox wide">
+        <h3>Voltage, Current and Power vs Time
+          <span class="key">
+            <span style="color:#37d5e8"><i></i>V <b id="k-v">--</b></span>
+            <span style="color:#e0ab54"><i></i>I <b id="k-i">--</b></span>
+            <span style="color:#b48cff"><i></i>P <b id="k-p">--</b></span>
+          </span>
+        </h3>
+        <canvas id="cv-p"></canvas>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <h2 id="m-title">Set Up Port A Test</h2>
+    <p>Enter rated battery parameters. The dashboard estimates dynamic resistance and evaluates measured battery-response indicators.</p>
+    <div class="row"><label for="m-mah">RATED CAPACITY (mAh)</label><input type="number" id="m-mah" min="50" step="50" value="2000"></div>
+    <div class="row"><label for="m-vn">NOMINAL VOLTAGE (V)</label><input type="number" id="m-vn" min="1" step="0.1" value="3.7"></div>
+    <div class="row"><label for="m-ch">CHEMISTRY</label>
+      <select id="m-ch">
+        <option value="li">Li-ion / LiPo (3.0–4.2 V per cell)</option>
+        <option value="lfp">LiFePO4 (2.5–3.65 V per cell)</option>
+        <option value="pb">Lead-acid (1.75–2.4 V per cell)</option>
+      </select>
+    </div>
+    <p class="mono" id="m-info"></p>
+    <p id="m-warn" style="color:var(--amber)"></p>
+    <div class="acts">
+      <button class="btn sec" id="m-cancel" type="button">Cancel</button>
+      <button class="btn" id="m-go" type="button">Start Test</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var isNum = function (v) { return typeof v === "number" && isFinite(v); };
+  
+  var REGRESSION_REQUIRED_POINTS = 90;
+  var REST_PERIOD_MS = 30000;
+  var SOC_SMOOTHING_WINDOW = 30;
+  var DISCHARGE_RATE_PERCENT_PER_MIN = 5;
+
+  var CHEM = {
+    li:  { vn: 3.7, vmax: 4.2, low: 3.0, warn: 3.2, high: 4.25, sagWarn: 0.18, rCell: 0.15, ocv: [[3.0,0],[3.45,5],[3.6,20],[3.7,40],[3.8,55],[3.9,70],[4.0,82],[4.1,93],[4.2,100]] },
+    lfp: { vn: 3.2, vmax: 3.65, low: 2.7, warn: 3.0, high: 3.70, sagWarn: 0.15, rCell: 0.10, ocv: [[2.5,0],[3.0,5],[3.2,20],[3.26,50],[3.3,70],[3.35,90],[3.45,97],[3.65,100]] },
+    pb:  { vn: 2.0, vmax: 2.4, low: 1.75, warn: 1.90, high: 2.45, sagWarn: 0.12, rCell: 0.025, ocv: [[1.75,0],[1.95,25],[2.0,50],[2.05,75],[2.1,95],[2.13,100]] }
+  };
+  var LEVELS = ["Excellent", "Good", "Fair", "Poor", "Bad"];
+
+  function rawOcv2soc(v, ch) {
+    var t = ch.ocv; if (v <= t[0][0]) return 0;
+    for (var i = 1; i < t.length; i++) if (v <= t[i][0]) return t[i-1][1] + (t[i][1]-t[i-1][1]) * (v-t[i-1][0]) / (t[i][0]-t[i-1][0]);
+    return 100;
+  }
+
+  function fitQuadratic(x, y) {
+    var n = 0, sx = 0, sx2 = 0, sx3 = 0, sx4 = 0, sy = 0, sxy = 0, sx2y = 0;
+    for (var i = 0; i < x.length; i++) {
+      if (isNum(x[i]) && isNum(y[i])) {
+        var xi = x[i], yi = y[i], xi2 = xi * xi;
+        n++; sx += xi; sx2 += xi2; sx3 += xi * xi2; sx4 += xi2 * xi2;
+        sy += yi; sxy += xi * yi; sx2y += xi2 * yi;
+      }
+    }
+    if (n < 4) return null;
+    var det = n * (sx2 * sx4 - sx3 * sx3) - sx * (sx * sx4 - sx2 * sx3) + sx2 * (sx * sx3 - sx2 * sx2);
+    if (Math.abs(det) < 1e-12) return null;
+    var a = (sy * (sx2 * sx4 - sx3 * sx3) - sx * (sxy * sx4 - sx2y * sx3) + sx2 * (sxy * sx3 - sx2y * sx2)) / det;
+    var b = (n * (sxy * sx4 - sx2y * sx3) - sy * (sx * sx4 - sx2 * sx3) + sx2 * (sx * sx2y - sxy * sx2)) / det;
+    var c = (n * (sx2 * sx2y - sxy * sx3) - sx * (sx * sx2y - sxy * sx2) + sy * (sx * sx3 - sx2 * sx2)) / det;
+    return { a: a, b: b, c: c };
+  }
+
+  function lsq(x, y) {
+    var n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (var i = 0; i < x.length; i++) if (isNum(y[i])) { n++; sx += x[i]; sy += y[i]; sxx += x[i]*x[i]; sxy += x[i]*y[i]; }
+    var d = n * sxx - sx * sx;
+    if (n < 3 || Math.abs(d) < 1e-9) return { m: 0, b: n ? sy / n : 0 };
+    var m = (n * sxy - sx * sy) / d;
+    var b = (sy - m * sx) / n;
+    return { m: m, b: b };
+  }
+
+  function mkPort(i, name, sensor, relayNum, ac) {
+    return {
+      i: i, name: name, sensor: sensor, relayNum: relayNum, ac: ac, master: false, mode: "auto", relay: false,
+      cfg: { mAh: 2000, vn: 3.7, chem: "li" }, c: null, ses: null, an: null, V: null, I: null, T: null, live: false, lastTs: 0,
+      target: 100, th: { start: 30, stop: 90, temp: 45 }, fault: null,
+      vBuffer: []
+    };
+  }
+
+  var ports = [mkPort(0, "Port A", 1, 2, "#5fb0ff"), mkPort(1, "Port B", 2, 3, "#35c98d")];
+  var mainPowerState = false;
+  var activePortIndex = 0;
+  var bleChar = null, bleRx = null, bleDev = null;
+
+  var q = Promise.resolve();
+  function bleSend(txt) {
+    if (!bleRx) return;
+    q = q.then(function () { return bleRx.writeValue(new TextEncoder().encode(txt + "\n")); })
+         .catch(function (e) { setStatus("err", "Relay write failed: " + e.message); });
+  }
+
+  function setMainPower(on) {
+    mainPowerState = on;
+    bleSend(on ? "RELAY1:OFF" : "RELAY1:ON");
+    var btn = $("main-power-btn");
+    btn.textContent = "Main Power: " + (on ? "ON (RELAY1)" : "OFF (RELAY1)");
+    btn.className = "btn " + (on ? "on" : "off");
+  }
+
+  function setRelay(p, on, force) {
+    if (!force && p.relay === on) return;
+    if (on) {
+      var other = ports[1 - p.i];
+      other.relay = false;
+      bleSend("RELAY" + other.relayNum + ":ON");
+    }
+    p.relay = on;
+    bleSend("RELAY" + p.relayNum + (on ? ":OFF" : ":ON"));
+  }
+
+  function startSession(p, cfg) {
+    var ch = CHEM[cfg.chem], n = Math.max(1, Math.round(cfg.vn / ch.vn)), capAh = cfg.mAh / 1000;
+    p.cfg = cfg; p.c = { ch: ch, n: n, capAh: capAh }; p.fault = null;
+    p.vBuffer = [];
+    p.ses = {
+      t0: Date.now(), last: Date.now(), stage: "charging", stageStart: Date.now(),
+      soc: 25 + Math.random() * 25, initialSoc: null, ocvStart: 0, ocvNow: 0, baseV: null,
+      restV: [], chargeV: [], liveV30: null, voltageRise30: 0,
+      Ah: 0, R: null, Rexp: n * ch.rCell, T0: p.T, pV: p.V, pI: p.I,
+      lastSampleTs: 0, t: [], v: [], i: [], p: [], T: [], s: [],
+      diagSamples: [], restCandidateSince: null, restStableSamples: [], restVoltage: null,
+      loadedSamples: [], loadedVoltage: null, voltageSag: null, recoveryVoltage: null,
+      recoverySamples: [], recoveryStartedAt: null, wasLoaded: false, resistanceStatus: "Insufficient Current Variation",
+      voltageStatus: "Waiting for Measurements", diagnosticsNote: "Waiting for valid sensor measurements.",
+      locked: false, thermalOff: false, full: false, fullCount: 0,
+      capEst: null, analysisDone: false, ended: false,
+      socMode: "synthetic-rate", socStartedAt: Date.now()
+    };
+    p.ses.initialSoc = p.ses.soc;
+    p.ses.ocvStart = p.ses.soc;
+    p.ses.ocvNow = p.ses.soc;
+    p.an = null;
+    // Begin charging immediately; preserve the original active-LOW relay command polarity.
+    setRelay(p, true, true);
+  }
+
+  function computeSmoothedSoc(p) {
+    if (!p.vBuffer || p.vBuffer.length === 0) return p.ses ? p.ses.soc : 0;
+    var avgV = p.vBuffer.reduce(function (a, b) { return a + b; }, 0) / p.vBuffer.length;
+    var ch = p.c ? p.c.ch : CHEM.li;
+    var nCells = p.c ? p.c.n : 1;
+    return clamp(rawOcv2soc(avgV / nCells, ch), 0, 100);
+  }
+
+  function median(values) {
+    if (!values.length) return null;
+    var a = values.slice().sort(function (x, y) { return x - y; });
+    var m = Math.floor(a.length / 2);
+    return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  }
+
+  function estimateResistance(S) {
+    var a = (S.diagSamples || []).filter(function (d) {
+      return isNum(d.v) && d.v > 0 && d.v <= 60 && isNum(d.i) && Math.abs(d.i) <= 5;
+    }).slice(-30);
+    if (a.length < 8) {
+      S.resistanceStatus = "Insufficient Current Variation";
+      return;
+    }
+    var currents = a.map(function (d) { return d.i; });
+    var voltages = a.map(function (d) { return d.v; });
+    var iMin = Math.min.apply(null, currents), iMax = Math.max.apply(null, currents);
+    if (iMax - iMin < 0.005) {
+      S.resistanceStatus = "Insufficient Current Variation";
+      return;
+    }
+    var mi = currents.reduce(function (x,y) { return x+y; }, 0) / a.length;
+    var mv = voltages.reduce(function (x,y) { return x+y; }, 0) / a.length;
+    var cov = 0, variance = 0;
+    for (var k = 0; k < a.length; k++) {
+      cov += (currents[k] - mi) * (voltages[k] - mv);
+      variance += Math.pow(currents[k] - mi, 2);
+    }
+    if (variance < 1e-8) {
+      S.resistanceStatus = "Insufficient Current Variation";
+      return;
+    }
+    var r = Math.abs(cov / variance);
+    if (!isNum(r) || r < 0.005 || r > 3) {
+      S.resistanceStatus = "Resistance Estimate Rejected";
+      return;
+    }
+    S.R = S.R == null ? r : 0.75 * S.R + 0.25 * r;
+    S.resistanceStatus = "Estimated dynamically";
+  }
+
+  function updateDiagnostics(p, ts) {
+    var S = p.ses, V = p.V, I = p.I;
+    if (!S || !isNum(V) || !isNum(I) || V <= 0 || V > 60 || Math.abs(I) > 5) return;
+    var absI = Math.abs(I), now = ts || Date.now();
+    var d = { t: now, v: V, i: I, temp: isNum(p.T) ? p.T : null };
+    S.diagSamples.push(d);
+    if (S.diagSamples.length > 120) S.diagSamples.shift();
+
+    // Resting-voltage candidate: near-zero current and relay is already OFF.
+    if (!p.relay && absI <= 0.02) {
+      if (S.restCandidateSince == null) {
+        S.restCandidateSince = now;
+        S.restStableSamples = [];
+      }
+      S.restStableSamples.push(V);
+      if (S.restStableSamples.length > 40) S.restStableSamples.shift();
+      var stableSpan = S.restStableSamples.length >= 6 ?
+        Math.max.apply(null, S.restStableSamples) - Math.min.apply(null, S.restStableSamples) : Infinity;
+      if (now - S.restCandidateSince >= REST_PERIOD_MS &&
+          S.restStableSamples.length >= 6 && stableSpan <= 0.025) {
+        S.restVoltage = median(S.restStableSamples.slice(-10));
+        S.restV = S.restStableSamples.slice(-10);
+      }
+    } else {
+      S.restCandidateSince = null;
+      S.restStableSamples = [];
+    }
+
+    // Loaded-voltage reference is recorded only with meaningful measured current.
+    if (absI >= 0.05) {
+      S.loadedSamples.push(V);
+      if (S.loadedSamples.length > 10) S.loadedSamples.shift();
+      S.loadedVoltage = median(S.loadedSamples);
+      S.wasLoaded = true;
+      S.recoverySamples = [];
+      S.recoveryStartedAt = null;
+      if (isNum(S.restVoltage)) {
+        var sag = S.restVoltage - S.loadedVoltage;
+        S.voltageSag = sag >= -0.03 ? Math.max(0, sag) : null;
+      }
+    } else if (S.wasLoaded && !p.relay && absI <= 0.02) {
+      if (S.recoveryStartedAt == null) S.recoveryStartedAt = now;
+      S.recoverySamples.push(V);
+      if (S.recoverySamples.length > 12) S.recoverySamples.shift();
+      if (now - S.recoveryStartedAt >= 10000 && S.recoverySamples.length >= 3) {
+        S.recoveryVoltage = median(S.recoverySamples.slice(-5));
+        S.wasLoaded = false;
+      }
+    }
+
+    estimateResistance(S);
+
+    var chem = p.c && p.c.ch ? p.c.ch : CHEM.li;
+    var n = p.c && p.c.n ? p.c.n : 1;
+    var cellV = V / n;
+    var assessV = isNum(S.restVoltage) ? S.restVoltage / n : cellV;
+    if (assessV < chem.low) S.voltageStatus = "Low voltage (" + assessV.toFixed(2) + " V/cell)";
+    else if (assessV > chem.high) S.voltageStatus = "High voltage (" + assessV.toFixed(2) + " V/cell)";
+    else if (assessV < chem.warn) S.voltageStatus = "Below normal (" + assessV.toFixed(2) + " V/cell)";
+    else S.voltageStatus = isNum(S.restVoltage) ? "Resting voltage in expected range" : "Loaded / live voltage in expected range";
+    S.diagnosticsNote = S.restCandidateSince == null ?
+      "Resting voltage requires current ≤20 mA for at least 30 seconds with stable voltage. No relay switching is performed." :
+      "Resting-voltage stabilization in progress: " + Math.max(0, Math.round((now - S.restCandidateSince) / 1000)) + " / 30 s.";
+  }
+
+  // Called once for each fresh INA219 Current line (ESP32 sends about every 3 seconds).
+  function step1Sec(p, ts) {
+    if (!p.master || !p.ses || p.ses.ended) return;
+    var S = p.ses, c = p.c, V = p.V, I = p.I;
+    if (!isNum(V) || !isNum(I) || V <= 0 || V > 60 || Math.abs(I) > 5) return;
+    var dt = S.lastSampleTs ? clamp((ts - S.lastSampleTs) / 1000, 0, 10) : 0;
+    S.lastSampleTs = ts;
+    updateDiagnostics(p, ts);
+
+    // Charging SOC is deliberately smoothed and independent of noisy voltage readings.
+    // It starts at a randomized 25–50% once per session and rises at no more than 10%/min.
+    if (p.relay && !S.locked && !p.fault && dt > 0) {
+      S.soc = clamp(S.soc + Math.min(10, 10) * (dt / 60), 0, 100);
+    } else if (!p.relay && dt > 0) {
+      // Requested slow discharge display: 5 percentage points per minute.
+      S.soc = clamp(S.soc - DISCHARGE_RATE_PERCENT_PER_MIN * (dt / 60), 0, 100);
+    }
+
+    // Estimate resistance from real sample-to-sample changes, but do not derive SOC from loaded voltage.
+    var dI = I - S.pI, dV = V - S.pV;
+    if (Math.abs(dI) > Math.max(0.03, 0.1 * c.capAh)) {
+      var r = Math.abs(dV / dI);
+      if (r > 0.005 && r < 3) S.R = S.R == null ? r : 0.7 * S.R + 0.3 * r;
+    }
+    S.pV = V; S.pI = I;
+
+    // Keep measured charge throughput for reporting, but do not let noisy INA current
+    // make the displayed SOC jump or flicker.
+    if (p.relay && I > 0 && dt > 0) S.Ah += I * dt / 3600;
+
+    // Compare the initial 30-second resting voltage with the latest 30 charging samples.
+    S.chargeV.push(V);
+    if (S.chargeV.length > 30) S.chargeV.shift();
+    S.liveV30 = S.chargeV.reduce(function (a, b) { return a + b; }, 0) / S.chargeV.length;
+    S.voltageRise30 = S.baseV == null ? 0 : S.liveV30 - S.baseV;
+
+    S.full = S.soc >= 100;
+    if (S.full) S.soc = 100;
+
+    // Keep a fixed 90-sample analysis set. After it is complete, freeze quality analysis,
+    // but continue live SOC updates and the existing automatic/manual relay control.
+    if (!S.analysisDone) {
+      S.t.push((ts - S.t0) / 60000); S.v.push(V); S.i.push(I); S.p.push(V * I);
+      S.T.push(p.T == null ? 25 : p.T); S.s.push(S.soc);
+      if (S.t.length >= REGRESSION_REQUIRED_POINTS) S.analysisDone = true;
+      analyse(p);
+    }
+
+    control(p);
+    render();
+  }
+
+  // Automated Relay Control based on Limits and Temperature
+  function control(p) {
+    var S = p.ses, T = p.T != null ? p.T : 25;
+    var want = p.relay;
+
+    var isOverTemp = (T >= p.th.temp);
+    if (isOverTemp) {
+      if (!S.locked) S.thermalOff = true;
+      S.locked = true;
+    } else if (S.locked && (T < p.th.temp - 3)) {
+      S.locked = false;
+      if (S.thermalOff) { S.thermalOff = false; }
+    }
+
+    if (S.locked || isOverTemp) {
+      want = false;
+    } else if (p.mode === "auto") {
+      if (S.soc >= p.th.stop) {
+        want = false;
+      } else if (!p.relay && S.soc <= p.th.start) {
+        want = true;
+      }
+    } else {
+      if (S.soc >= p.target) {
+        want = false;
+      }
+    }
+
+    setRelay(p, want);
+  }
+
+  function analyse(p) {
+    var S = p.ses, c = p.c, n = S.t.length;
+    if (S.analysisDone && p.an && p.an.ready) return;
+    var pointsCollected = n;
+    var ready = pointsCollected >= REGRESSION_REQUIRED_POINTS;
+    var W = Math.min(n, REGRESSION_REQUIRED_POINTS);
+    var xs = S.t.slice(-W);
+    var mV = lsq(xs, S.v.slice(-W)).m;
+    var mT = lsq(xs, S.T.slice(-W)).m;
+    var pen = [], reasons = [];
+    var chem = c.ch, cellV = isNum(p.V) ? p.V / c.n : null;
+    var assessmentV = isNum(S.restVoltage) ? S.restVoltage / c.n : cellV;
+    var T = isNum(p.T) ? p.T : 25;
+
+    // Chemistry-specific voltage assessment. Prefer stabilized resting voltage.
+    if (isNum(assessmentV)) {
+      if (assessmentV < chem.low) pen.push([45, "Critically low voltage (" + assessmentV.toFixed(2) + " V/cell)"]);
+      else if (assessmentV < chem.warn) pen.push([20, "Low voltage (" + assessmentV.toFixed(2) + " V/cell)"]);
+      else if (assessmentV > chem.high) pen.push([35, "High voltage (" + assessmentV.toFixed(2) + " V/cell)"]);
+    }
+
+    // Temperature trend and absolute temperature are independent assessment indicators.
+    if (mT > 0.3) pen.push([clamp((mT - 0.2) * 20, 0, 30), "Temperature rising rapidly (+" + mT.toFixed(2) + " °C/min)"]);
+    if (T >= 40) pen.push([clamp((T - 38) * 3, 0, 30), "High temperature " + T.toFixed(1) + "°C"]);
+
+    // Dynamic resistance is assessed only when the regression estimate is valid.
+    if (isNum(S.R)) {
+      var rLimit = Math.max(0.02, S.Rexp * 1.8);
+      if (S.R > rLimit) pen.push([clamp((S.R / rLimit - 1) * 20, 0, 30), "High estimated dynamic resistance (" + (S.R * 1000).toFixed(0) + " mΩ)"]);
+    }
+
+    // Sag is meaningful only when both resting and loaded references exist.
+    if (isNum(S.voltageSag) && S.voltageSag / c.n > chem.sagWarn) {
+      pen.push([clamp((S.voltageSag / c.n - chem.sagWarn) * 100, 0, 25),
+        "High voltage sag (" + (S.voltageSag / c.n).toFixed(3) + " V/cell)"]);
+    }
+    if (isNum(S.restVoltage) && isNum(S.recoveryVoltage)) {
+      var unrecoveredPerCell = (S.restVoltage - S.recoveryVoltage) / c.n;
+      if (unrecoveredPerCell > 0.08) {
+        pen.push([clamp((unrecoveredPerCell - 0.08) * 100, 0, 20),
+          "Voltage recovery remains below resting reference (" + unrecoveredPerCell.toFixed(3) + " V/cell)"]);
+      }
+    }
+
+    // High charge rate is evaluated only with valid rated capacity and measured current.
+    var cr = isNum(p.I) && c.capAh > 0 ? Math.max(0, p.I) / c.capAh : null;
+    if (isNum(cr) && cr > 1.2) pen.push([clamp((cr - 1) * 20, 0, 15), "High charge rate " + cr.toFixed(2) + "C"]);
+    if (p.fault) pen.push([80, p.fault]);
+
+    var totalPen = pen.reduce(function (a, x) { return a + x[0]; }, 0);
+    var score = clamp(100 - totalPen, 0, 100);
+    reasons = pen.filter(function (x) { return x[0] >= 4; })
+      .sort(function (a, b) { return b[0] - a[0]; })
+      .slice(0, 3).map(function (x) { return x[1]; });
+
+    var lvl = p.fault ? 5 : score >= 88 ? 1 : score >= 75 ? 2 : score >= 60 ? 3 : score >= 45 ? 4 : 5;
+    var thermalLevel = mT >= 1.2 ? 5 : mT >= 0.9 ? 4 : mT >= 0.5 ? 3 : mT >= 0.3 ? 2 : 1;
+    lvl = Math.max(lvl, thermalLevel);
+    var cond = !ready ? "idle" : lvl === 1 ? "healthy" : lvl === 2 ? "normal" : lvl === 3 ? "degraded" : "abnormal";
+
+    p.an = {
+      score: score, cond: cond, level: lvl, ready: ready, points: pointsCollected, reasons: reasons,
+      mV: mV, mT: mT, fc: forecastQuadratic(p, xs),
+      assessmentType: isNum(S.restVoltage) ? "resting-voltage referenced" : "provisional live-voltage referenced"
+    };
+  }
+
+  function forecastQuadratic(p, xs) {
+    var S = p.ses, c = p.c, D = 0.5, tgt = p.mode === "manual" ? p.target : p.th.stop;
+    var out = { t: [], v: [], i: [], p: [], T: [], s: [], eta: null };
+    if (!S || S.t.length < 5) return out;
+
+    var lastT = S.t[S.t.length - 1];
+    var qFitS = fitQuadratic(xs, S.s.slice(-xs.length));
+
+    var currentS = S.soc, currentV = p.V, currentI = p.I, currentT = p.T || 25;
+    for (var k = 1; k <= 120; k++) {
+      var futureT = lastT + k * (D / 60);
+      var futureS = currentS;
+      if (qFitS) {
+        var deltaT = k * (D / 60);
+        futureS = clamp(currentS + qFitS.b * deltaT + qFitS.a * deltaT * deltaT, 0, 100);
+      } else {
+        futureS = clamp(currentS + (p.relay ? 0.2 * k : -0.05 * k), 0, 100);
+      }
+      out.t.push(futureT); out.v.push(currentV); out.i.push(currentI);
+      out.p.push(currentV * currentI); out.T.push(currentT); out.s.push(futureS);
+      if (out.eta == null && futureS >= tgt) out.eta = k * D;
+    }
+    return out;
+  }
+
+  var buf = "", curSensor = 1, currentPacket = { s: {}, T: {} };
+  var dec = new TextDecoder("utf-8");
+
+  function feed(txt) {
+    buf += txt;
+    var lines = buf.split("\n"); buf = lines.pop();
+    lines.forEach(function (raw) {
+      var l = raw.trim(), m;
+      if ((m = l.match(/^(?:INA\s+)?Sensor\s+(\d)(?:\s+Measurements)?\s*:/i))) {
+        curSensor = parseInt(m[1], 10);
+        if (!currentPacket.s[curSensor]) currentPacket.s[curSensor] = {};
+        return;
+      }
+      if ((m = l.match(/^Bus Voltage:\s*(-?[\d.]+)/i))) {
+        currentPacket.s[curSensor] = currentPacket.s[curSensor] || {};
+        currentPacket.s[curSensor].v = parseFloat(m[1]);
+        updateSensorState();
+      } else if ((m = l.match(/^Current:\s*(-?[\d.]+)/i))) {
+        currentPacket.s[curSensor] = currentPacket.s[curSensor] || {};
+        currentPacket.s[curSensor].i = parseFloat(m[1]);
+        updateSensorState();
+      } else if ((m = l.match(/^Temp (\d)[^:]*:\s*(.*)$/i))) {
+        var tNum = parseInt(m[1], 10);
+        currentPacket.T[tNum] = /Not detected/i.test(m[2]) ? null : parseFloat(m[2]);
+        updateSensorState(tNum);
+      }
+    });
+  }
+
+  function updateSensorState(sampleSensor) {
+    var now = Date.now();
+    ports.forEach(function (p) {
+      var s = currentPacket.s[p.sensor];
+      if (s) {
+        if (isNum(s.v)) {
+          p.V = s.v;
+          p.vBuffer.push(s.v);
+          if (p.vBuffer.length > SOC_SMOOTHING_WINDOW) p.vBuffer.shift();
+        }
+        if (isNum(s.i)) p.I = s.i / 1000;
+        p.live = true; p.lastTs = now;
+      }
+      var t = currentPacket.T[p.sensor];
+      if (isNum(t)) p.T = t;
+      if (sampleSensor === p.sensor && p.master && p.ses) step1Sec(p, now);
+    });
+    setStatus("ok", "Connected — Synchronized Telemetry");
+  }
+
+  // UI refresh only. Measurements are counted exclusively when a fresh INA219 packet arrives.
+  setInterval(function () { render(); }, 1000);
+
+  var SVC = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+  var TX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+  var RX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
+  function setStatus(state, msg) {
+    $("dot").className = "dot" + (state ? " " + state : "");
+    $("status-text").textContent = msg;
+  }
+
+  $("ble-connect").addEventListener("click", function () {
+    if (!navigator.bluetooth) { setStatus("err", "Web Bluetooth not supported."); return; }
+    setStatus("busy", "Opening Bluetooth Picker...");
+    navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "Smart_Battery" }], optionalServices: [SVC] })
+      .then(function (d) { bleDev = d; d.addEventListener("gattserverdisconnected", onDisc); setStatus("busy", "Connecting..."); return d.gatt.connect(); })
+      .then(function (s) { return s.getPrimaryService(SVC); })
+      .then(function (svc) { return Promise.all([svc.getCharacteristic(TX), svc.getCharacteristic(RX)]); })
+      .then(function (ch) {
+        bleChar = ch[0]; bleRx = ch[1]; buf = "";
+        bleChar.addEventListener("characteristicvaluechanged", function (e) { feed(dec.decode(e.target.value, { stream: true })); });
+        return bleChar.startNotifications();
+      })
+      .then(function () {
+        setStatus("ok", "Connected — Waiting for Telemetry...");
+        $("ble-connect").disabled = true; $("ble-disconnect").disabled = false;
+        setMainPower(true);
+      })
+      .catch(function (e) { setStatus("err", "Connection failed: " + e.message); });
+  });
+
+  $("ble-disconnect").addEventListener("click", function () {
+    setMainPower(false);
+    ports.forEach(function (p) { if (p.master) stopPort(p); });
+    q.then(function () { if (bleDev && bleDev.gatt.connected) bleDev.gatt.disconnect(); });
+  });
+
+  function onDisc() {
+    bleChar = null; bleRx = null; setStatus("", "Disconnected");
+    $("ble-connect").disabled = false; $("ble-disconnect").disabled = true;
+  }
+
+  $("main-power-btn").addEventListener("click", function () {
+    setMainPower(!mainPowerState);
+  });
+
+  function stopPort(p) {
+    p.master = false; setRelay(p, false, true);
+    if (p.ses) p.ses.ended = true;
+    render();
+  }
+
+  function selectActivePort(idx) {
+    activePortIndex = idx;
+    var activePort = ports[idx];
+    var inactivePort = ports[1 - idx];
+    setRelay(inactivePort, false, true);
+    $("port-selector").querySelectorAll("button").forEach(function (btn) {
+      btn.classList.toggle("active", +btn.getAttribute("data-p") === idx);
+    });
+    if (!activePort.master) {
+      openModal(idx);
+    } else {
+      render();
+    }
+  }
+
+  $("port-selector").addEventListener("click", function (e) {
+    var v = e.target.getAttribute && e.target.getAttribute("data-p");
+    if (v != null) selectActivePort(+v);
+  });
+
+  $("stop-all").addEventListener("click", function () {
+    ports.forEach(function (p) { stopPort(p); });
+  });
+
+  var modalFor = 0;
+  function openModal(i) {
+    modalFor = i; var p = ports[i];
+    $("m-title").textContent = "Set Up " + p.name + " Test";
+    $("m-mah").value = p.cfg.mAh; $("m-vn").value = p.cfg.vn; $("m-ch").value = p.cfg.chem;
+    $("m-warn").textContent = bleRx ? "" : "Connect ESP32 via Bluetooth first.";
+    modalInfo(); $("modal").hidden = false; $("m-mah").focus();
+  }
+
+  function modalInfo() {
+    var ch = CHEM[$("m-ch").value], vn = parseFloat($("m-vn").value) || ch.vn, n = Math.max(1, Math.round(vn / ch.vn));
+    $("m-info").textContent = n + " cell" + (n > 1 ? "s" : "") + " in series · max voltage " + (ch.vmax * n).toFixed(2) + " V";
+  }
+
+  ["m-vn", "m-ch", "m-mah"].forEach(function (id) { $(id).addEventListener("input", modalInfo); });
+  $("m-cancel").addEventListener("click", function () { $("modal").hidden = true; });
+
+  $("m-go").addEventListener("click", function () {
+    var mAh = parseFloat($("m-mah").value), vn = parseFloat($("m-vn").value);
+    if (!(mAh > 0) || !(vn > 0)) { $("m-warn").textContent = "Enter valid capacity and voltage values."; return; }
+    if (!bleRx) { $("m-warn").textContent = "Connect ESP32 via Bluetooth first."; return; }
+    var p = ports[modalFor], o = ports[1 - modalFor];
+    if (o.master) stopPort(o);
+    p.master = true; $("modal").hidden = true;
+    startSession(p, { mAh: mAh, vn: vn, chem: $("m-ch").value });
+    render();
+  });
+
+  var ICON = '<svg viewBox="0 0 40 80"><rect x="14" y="2" width="12" height="6" fill="var(--muted2)"/><rect x="4" y="8" width="32" height="68" rx="3" fill="none" stroke="var(--muted2)" stroke-width="2"/><rect id="bf-I" class="bf" x="7" y="11" width="26" height="0"/><path id="bolt-I" d="M22 24 14 46h7l-3 14 10-24h-7z" fill="#061020" opacity="0"/></svg>';
+  function sl(id, label, min, max, val, cls) {
+    return '<div class="sl ' + cls + '"><div class="tl"><label for="' + id + '">' + label + '</label><span class="v" id="' + id + '-v"></span></div><input type="range" id="' + id + '" min="' + min + '" max="' + max + '" value="' + val + '"></div>';
+  }
+
+  var grid = $("ports");
+  ports.forEach(function (p) {
+    var i = p.i, d = document.createElement("article");
+    d.className = "card"; d.id = "card-" + i; d.style.setProperty("--ac", p.ac); d.dataset.mode = p.mode;
+    d.innerHTML =
+      '<div class="head"><div><div class="name">' + p.name + ' <span class="tag" id="live-' + i + '">NO DATA</span></div><span class="chid">INA Sensor #' + p.sensor + ' &middot; DS18B20 #' + p.sensor + ' &middot; RELAY' + p.relayNum + '</span></div>' +
+      '<div class="seg" id="mode-' + i + '"><button type="button" data-m="manual" id="btn-man-' + i + '">Manual</button><button type="button" data-m="auto" id="btn-auto-' + i + '" class="active">Automatic</button></div></div>' +
+      '<div class="body"><div class="batt">' + ICON.replace(/-I/g, "-" + i) + '<span class="pct" id="soc-' + i + '">--</span><span class="lbl">EST. SOC</span></div>' +
+      '<dl class="reads">' + [["Voltage", "v"], ["Current", "i"], ["Temp", "t"], ["Temp rise", "tr"], ["Resistance", "r"], ["Est. capacity", "cap"], ["Time to target", "eta"], ["Quality score", "hs"]]
+        .map(function (r) { return '<div><dt>' + r[0] + '</dt><dd id="' + r[1] + '-' + i + '">--</dd></div>'; }).join("") + '</dl></div>' +
+      
+      '<div class="spark-box">' +
+        '<div class="sp-title">VOLTAGE TREND &middot; FORECAST (LIVE SENSOR SAMPLES)</div>' +
+        '<div style="position:relative;"><canvas id="spark-' + i + '" width="500" height="95"></canvas></div>' +
+      '</div>' +
+
+      '<div class="ctl">' + sl("tg-" + i, "Charge to %", 10, 100, p.target, "man-only") + sl("st-" + i, "Start below %", 5, 95, p.th.start, "auto-only") + sl("sp-" + i, "Stop at %", 20, 100, p.th.stop, "auto-only") + sl("tc-" + i, "Temp cut-off °C", 30, 60, p.th.temp, "") + '</div>' +
+      '<div class="foot"><div class="sw"><span class="l" id="mst-' + i + '">Selected</span>' +
+      '<span class="l man-only">&middot; charge</span><button class="tg small man-only" id="relay-' + i + '" type="button"><i></i></button></div><span class="badge idle" id="badge-' + i + '">Idle</span></div>' +
+      '<div class="msg" id="msg-' + i + '"></div>';
+    grid.appendChild(d);
+
+    $("relay-" + i).addEventListener("click", function () {
+      if (!p.master || !p.ses || p.fault || p.ses.locked) return;
+      setRelay(p, !p.relay); render();
+    });
+
+    $("mode-" + i).addEventListener("click", function (e) {
+      var m = e.target.getAttribute && e.target.getAttribute("data-m"); if (!m) return;
+      p.mode = m; d.dataset.mode = m;
+      $("btn-man-" + i).classList.toggle("active", m === "manual");
+      $("btn-auto-" + i).classList.toggle("active", m === "auto");
+      if (p.master && p.ses) { control(p); }
+      render();
+    });
+
+    [["tg", function (v) { p.target = v; }],
+     ["st", function (v) { p.th.start = v; if (p.th.start >= p.th.stop) { p.th.stop = clamp(v + 5, 20, 100); $("sp-" + i).value = p.th.stop; } }],
+     ["sp", function (v) { p.th.stop = v; if (p.th.start >= v) { p.th.start = clamp(v - 5, 5, 95); $("st-" + i).value = p.th.start; } }],
+     ["tc", function (v) { p.th.temp = v; }]]
+      .forEach(function (s) {
+        $(s[0] + "-" + i).addEventListener("input", function () {
+          s[1](+this.value);
+          if (p.master && p.ses) { analyse(p); control(p); }
+          render();
+        });
+      });
+  });
+
+  var BADGE = ["healthy", "normal", "degraded", "abnormal", "abnormal"];
+  function fmtDur(s) { if (s == null) return "--"; var m = Math.round(s / 60); return m < 60 ? m + " min" : Math.floor(m / 60) + " h " + (m % 60) + " m"; }
+
+  function render() {
+    ports.forEach(function (p, i) {
+      var card = $("card-" + i);
+      if (i !== activePortIndex) { card.hidden = true; return; }
+      card.hidden = false;
+
+      $("btn-man-" + i).classList.toggle("active", p.mode === "manual");
+      $("btn-auto-" + i).classList.toggle("active", p.mode === "auto");
+
+      var S = p.ses, an = p.an, active = p.master && S;
+      var live = p.live && (Date.now() - p.lastTs < 8000);
+      var tag = $("live-" + i); tag.textContent = live ? "LIVE" : "NO DATA"; tag.classList.toggle("on", !!live);
+
+      $("v-" + i).textContent = live && isNum(p.V) ? p.V.toFixed(3) + " V" : "--";
+      $("i-" + i).textContent = live && isNum(p.I) ? (p.I * 1000).toFixed(2) + " mA" : "--";
+      $("t-" + i).textContent = p.T == null ? "n/a" : p.T.toFixed(1) + "°C";
+
+      $("tr-" + i).textContent = active && an && p.T != null ? (an.mT >= 0 ? "+" : "") + an.mT.toFixed(2) + "/min" : "--";
+      $("r-" + i).textContent = active && S.R != null ? (S.R * 1000).toFixed(1) + " mΩ" : (active ? (S.resistanceStatus || "Insufficient variation") : "--");
+      $("cap-" + i).textContent = active && S.capEst ? (S.capEst * 1000).toFixed(0) + " mAh" : "--";
+      $("eta-" + i).textContent = active && an && an.fc && p.relay ? fmtDur(an.fc.eta) : "--";
+      $("hs-" + i).textContent = active && an && an.ready ? Math.round(an.score) + "/100" : "--";
+
+      var pct = S ? clamp(S.soc, 0, 100) : (live && isNum(p.V) ? computeSmoothedSoc(p) : 0);
+      var fill = $("bf-" + i);
+      fill.setAttribute("height", (62 * pct / 100).toFixed(1));
+      fill.setAttribute("y", (73 - 62 * pct / 100).toFixed(1));
+      fill.setAttribute("class", "bf " + (pct < 25 ? "low" : pct < 60 ? "mid" : "high"));
+      $("bolt-" + i).setAttribute("opacity", p.relay ? 1 : 0);
+      $("soc-" + i).textContent = (live || S) ? pct.toFixed(1) + "%" : "--";
+
+      $("mst-" + i).textContent = "Active Testing Port";
+      $("relay-" + i).classList.toggle("on", p.relay);
+
+      $("tg-" + i + "-v").textContent = p.target + "%";
+      $("st-" + i + "-v").textContent = "<" + p.th.start + "%";
+      $("sp-" + i + "-v").textContent = "≥" + p.th.stop + "%";
+      $("tc-" + i + "-v").textContent = p.th.temp + "°C";
+
+      var b = $("badge-" + i);
+      if (active && an && an.ready) { b.className = "badge " + BADGE[an.level - 1]; b.textContent = LEVELS[an.level - 1]; }
+      else if (active) { b.className = "badge idle"; b.textContent = "Analysing (" + (S ? S.t.length : 0) + "/90)"; }
+      else { b.className = "badge idle"; b.textContent = "Idle"; }
+
+      var msg;
+      if (!p.master) msg = "Selected for testing. Start a test to begin charging analysis.";
+      else if (p.fault) msg = p.fault + " — Charger OFF.";
+      else if (S.locked) msg = "Temp cutoff reached (" + p.th.temp + "°C) — Charger OFF.";
+      else if (p.relay) msg = "Charging active (" + (p.mode === "auto" ? "Auto Mode" : "Manual Mode") + ") — SOC rises up to 10%/min. " + (S && S.analysisDone ? "90-sample analysis complete; charging control continues." : "Analysis samples: " + (S ? S.t.length : 0) + "/90.");
+      else msg = p.mode === "auto" ? "Standby — Waiting for SOC to drop below " + p.th.start + "%." : "Manual — Target reached or switch OFF.";
+      $("msg-" + i).textContent = msg;
+
+      drawSparkline(i);
+    });
+
+    $("chart-title").textContent = ports[activePortIndex].name + " — Charging Analysis & Quadratic Forecast";
+    renderQuality();
+    renderDiagnostics();
+    drawAll();
+  }
+
+  function renderDiagnostics() {
+    var p = ports[activePortIndex], S = p.ses;
+    $("diag-title").textContent = p.name + " — Battery Electrical Condition";
+    if (!S) {
+      $("diag-state").textContent = "Waiting for Test";
+      $("diag-rest").textContent = "Waiting for Resting Voltage";
+      $("diag-load").textContent = "Not Available";
+      $("diag-sag").textContent = "Not Available";
+      $("diag-recovery").textContent = "Not Available";
+      $("diag-resistance").textContent = "Insufficient Current Variation";
+      $("diag-voltage").textContent = "Waiting for Measurements";
+      $("diag-note").textContent = "Start a test and provide a stable low-current period. Relay operation is not changed for diagnostics.";
+      return;
+    }
+    var I = p.I, state = p.relay ? "Charging" :
+      (isNum(I) && Math.abs(I) <= 0.02 ? "Resting / Near-zero current" :
+      (isNum(I) && I < 0 ? "Discharging" : "Load / Current flowing"));
+    $("diag-state").textContent = state;
+    $("diag-rest").textContent = isNum(S.restVoltage) ? S.restVoltage.toFixed(3) + " V" : "Waiting for Resting Voltage";
+    $("diag-load").textContent = isNum(S.loadedVoltage) ? S.loadedVoltage.toFixed(3) + " V" : "Not Available";
+    $("diag-sag").textContent = isNum(S.voltageSag) ? S.voltageSag.toFixed(3) + " V" : "Needs rest + loaded data";
+    $("diag-recovery").textContent = isNum(S.recoveryVoltage) ?
+      S.recoveryVoltage.toFixed(3) + " V" + (isNum(S.loadedVoltage) ? " (+" + (S.recoveryVoltage - S.loadedVoltage).toFixed(3) + " V)" : "") :
+      "Waiting for recovery data";
+    $("diag-resistance").textContent = isNum(S.R) ?
+      (S.R * 1000).toFixed(1) + " mΩ · " + S.resistanceStatus : S.resistanceStatus;
+    $("diag-voltage").textContent = S.voltageStatus || "Waiting for Measurements";
+    $("diag-note").textContent = (S.diagnosticsNote || "") +
+      " Dynamic resistance is an estimate from voltage-current regression; it is not a laboratory measurement.";
+  }
+
+  function renderQuality() {
+    var p = ports[activePortIndex], S = p.ses, an = S && p.an, lvl = 0, cls = "n", verdict, detail, prog = 0, tm = "";
+    $("q-port").textContent = p.name + " — Battery Quality";
+
+    if (!S) {
+      verdict = "No Test Running";
+      detail = "Start a test for " + p.name + " to evaluate battery quality.";
+    } else if (!an || !an.ready) {
+      var pts = S ? S.t.length : 0;
+      prog = Math.min(1, pts / REGRESSION_REQUIRED_POINTS);
+      verdict = "Analysing Telemetry...";
+      detail = "Collecting 90 real sensor samples. Progress: " + pts + " / 90 points.";
+      tm = "90-Sample Battery Analysis: " + pts + " / " + REGRESSION_REQUIRED_POINTS + " Points";
+    } else {
+      lvl = an.level; prog = 1;
+      cls = lvl <= 2 ? "g" : lvl === 3 ? "a" : "r";
+      verdict = lvl <= 2 ? "Good Battery" : lvl === 3 ? "Fair — Usable" : "Degraded Battery";
+      detail = an.reasons.length ? "Issues: " + an.reasons.join("; ") + "." : "Available charging-response indicators are within the selected limits. This is an estimate, not a certified State of Health or measured capacity test.";
+      tm = LEVELS[lvl - 1] + " · Score " + Math.round(an.score) + "/100 · 90-Sample Analysis Complete";
+    }
+
+    var v = $("q-verdict"); v.textContent = verdict; v.className = "q-verdict " + cls;
+    $("q-detail").textContent = detail; $("q-time").textContent = tm; $("q-bar").style.width = (prog * 100) + "%";
+
+    var L = $("q-leds");
+    Array.prototype.forEach.call(L.children, function (el2, k) { 
+      el2.classList.toggle("on", (an && an.ready) && (lvl === k + 1)); 
+    });
+  }
+
+  var DPR = window.devicePixelRatio || 1;
+  function drawSparkline(portId) {
+    var c = $("spark-" + portId); if (!c) return;
+    var r = c.getBoundingClientRect(); if (r.width < 10) return;
+    c.width = r.width * DPR; c.height = r.height * DPR;
+    var x = c.getContext("2d"); x.setTransform(DPR, 0, 0, DPR, 0, 0); x.clearRect(0, 0, r.width, r.height);
+
+    var p = ports[portId], S = p.ses, fc = p.an && p.an.fc;
+    if (!S || S.v.length < 2) {
+      x.fillStyle = "#62809f"; x.font = "10px JetBrains Mono, monospace";
+      x.fillText("Waiting for telemetry data...", 12, 50);
+      return;
+    }
+
+    var hx = S.t, hy = S.v, fx = fc ? fc.t : [], fy = fc ? fc.v : [];
+    var all = hy.concat(fy).filter(isNum);
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (hi - lo < 0.05) { var mid = (hi + lo) / 2; lo = mid - 0.05; hi = mid + 0.05; }
+    var pad = (hi - lo) * 0.15; lo -= pad; hi += pad;
+
+    var w = r.width, h = r.height, padL = 4, padR = 4, padT = 6, padB = 6;
+    var pw = w - padL - padR, ph = h - padT - padB;
+    var t0 = hx[0], t1 = Math.max(hx[hx.length - 1] + 0.5, fx.length ? fx[fx.length - 1] : 0);
+    var X = function (t) { return padL + pw * (t - t0) / (t1 - t0); };
+    var Y = function (v) { return padT + ph * (1 - (v - lo) / (hi - lo)); };
+    var nowX = X(hx[hx.length - 1]);
+
+    var gr = x.createLinearGradient(0, padT, 0, padT + ph);
+    gr.addColorStop(0, "rgba(63,138,224,.22)"); gr.addColorStop(1, "rgba(63,138,224,.02)");
+    x.fillStyle = gr; x.fillRect(padL, padT, nowX - padL, ph);
+
+    x.beginPath(); x.strokeStyle = p.ac; x.lineWidth = 2; x.lineJoin = "round";
+    var st = false;
+    for (var k = 0; k < hx.length; k++) {
+      if (!isNum(hy[k])) continue;
+      var xx = X(hx[k]), yy = Y(hy[k]);
+      if (!st) { x.moveTo(xx, yy); st = true; } else x.lineTo(xx, yy);
+    }
+    x.stroke();
+
+    if (fx.length) {
+      x.save(); x.setLineDash([2.5, 3.5]); x.beginPath(); x.lineWidth = 1.8; x.strokeStyle = p.ac; x.globalAlpha = .85;
+      x.moveTo(nowX, Y(hy[hy.length - 1]));
+      for (var i = 0; i < fx.length; i++) if (isNum(fy[i])) x.lineTo(X(fx[i]), Y(fy[i]));
+      x.stroke(); x.restore();
+    }
+    x.beginPath(); x.arc(nowX, Y(hy[hy.length - 1]), 3, 0, 7); x.fillStyle = p.ac; x.fill();
+  }
+
+  function setup(id) {
+    var c = $(id), r = c.getBoundingClientRect(); if (r.width < 20) return null;
+    c.width = r.width * DPR; c.height = r.height * DPR;
+    var x = c.getContext("2d"); x.setTransform(DPR, 0, 0, DPR, 0, 0); x.clearRect(0, 0, r.width, r.height);
+    x.font = "9px JetBrains Mono, monospace"; return { x: x, w: r.width, h: r.height };
+  }
+
+  function line(x, X, Y, hx, hy, fx, fy, col, nowX) {
+    var stride = Math.max(1, Math.floor(hx.length / 600)), st = false, k;
+    x.beginPath(); x.strokeStyle = col; x.lineWidth = 2; x.lineJoin = "round";
+    for (k = 0; k < hx.length; k += stride) {
+      if (!isNum(hy[k])) continue;
+      if (!st) { x.moveTo(X(hx[k]), Y(hy[k])); st = true; } else x.lineTo(X(hx[k]), Y(hy[k]));
+    }
+    x.stroke();
+
+    if (fx.length) {
+      x.save(); x.setLineDash([2.5, 3.5]); x.beginPath(); x.lineWidth = 1.8; x.strokeStyle = col; x.globalAlpha = .85;
+      x.moveTo(nowX, Y(hy[hy.length - 1]));
+      for (k = 0; k < fx.length; k++) if (isNum(fy[k])) x.lineTo(X(fx[k]), Y(fy[k]));
+      x.stroke(); x.restore();
+    }
+    x.beginPath(); x.arc(nowX, Y(hy[hy.length - 1]), 3, 0, 7); x.fillStyle = col; x.fill();
+  }
+
+  function range(hy, fy, o) {
+    var all = hy.concat(fy).filter(isNum), lo = o.min != null ? o.min : Math.min.apply(null, all), hi = o.max != null ? o.max : Math.max.apply(null, all);
+    if (o.min == null) {
+      if (hi - lo < o.span) { var m = (hi + lo) / 2; lo = m - o.span / 2; hi = m + o.span / 2; }
+      var pd = (hi - lo) * .1; lo -= pd; hi += pd;
+    }
+    return [lo, hi];
+  }
+
+  function frame(x, w, h, padL, padR, padT, padB, hx, fx) {
+    var pw = w - padL - padR, ph = h - padT - padB, t0 = hx[0], t1 = Math.max(hx[hx.length - 1] + 0.5, fx.length ? fx[fx.length - 1] : 0);
+    var X = function (t) { return padL + pw * (t - t0) / (t1 - t0); };
+    x.strokeStyle = "#16283f"; x.fillStyle = "#62809f";
+    for (var g = 0; g <= 4; g++) { var yy = padT + ph * g / 4; x.beginPath(); x.moveTo(padL, yy); x.lineTo(w - padR, yy); x.stroke(); }
+    x.fillText((t1 - t0).toFixed(t1 - t0 < 10 ? 1 : 0) + " min", w - padR - 44, h - 4); x.fillText("0", padL, h - 4);
+    var nowX = X(hx[hx.length - 1]), gr = x.createLinearGradient(0, padT, 0, padT + ph);
+    gr.addColorStop(0, "rgba(63,138,224,.18)"); gr.addColorStop(1, "rgba(63,138,224,.02)");
+    x.fillStyle = gr; x.fillRect(padL, padT, nowX - padL, ph);
+    x.save(); x.setLineDash([3, 3]); x.strokeStyle = "rgba(95,176,255,.7)"; x.beginPath(); x.moveTo(nowX, padT); x.lineTo(nowX, padT + ph); x.stroke(); x.restore();
+    x.fillStyle = "#62809f"; x.fillText("now", nowX + 3, padT + 9);
+    return { X: X, nowX: nowX, ph: ph, padT: padT };
+  }
+
+  function plot(id, key, o) {
+    var s = setup(id); if (!s) return;
+    var p = ports[activePortIndex], S = p.ses, fc = p.an && p.an.fc, x = s.x;
+    if (!S || !S.t.length) { x.fillStyle = "#62809f"; x.fillText("Connect ESP32 & start test to view telemetry", 46, s.h / 2); return; }
+    var hx = S.t, hy = S[key], fx = fc ? fc.t : [], fy = fc ? fc[key] : [], rg = range(hy, fy, o);
+    var f = frame(x, s.w, s.h, 38, 8, 8, 18, hx, fx), Y = function (v) { return f.padT + f.ph * (1 - (v - rg[0]) / (rg[1] - rg[0])); };
+    x.fillStyle = "#62809f"; for (var g = 0; g <= 4; g++) x.fillText((rg[1] - (rg[1] - rg[0]) * g / 4).toFixed(o.dec), 2, f.padT + f.ph * g / 4 + 3);
+    (o.lines || []).forEach(function (L) { if (L[0] < rg[0] || L[0] > rg[1]) return; x.save(); x.setLineDash([4, 3]); x.strokeStyle = L[1]; x.beginPath(); x.moveTo(38, Y(L[0])); x.lineTo(s.w - 8, Y(L[0])); x.stroke(); x.restore(); });
+    line(x, f.X, Y, hx, hy, fx, fy, p.ac, f.nowX);
+  }
+
+  var VIP = [{ k: "v", col: "#37d5e8", dec: 2, span: 0.2, ax: 0 }, { k: "i", col: "#e0ab54", dec: 2, span: 0.2, ax: 1 }, { k: "p", col: "#b48cff", dec: 1, span: 0.5, ax: 2 }];
+  function plotVIP() {
+    var s = setup("cv-p"); if (!s) return;
+    var p = ports[activePortIndex], S = p.ses, fc = p.an && p.an.fc, x = s.x;
+    if (!S || !S.t.length) { x.fillStyle = "#62809f"; x.fillText("Connect ESP32 & start test to view telemetry", 50, s.h / 2); return; }
+    var padL = 44, padR = 104, hx = S.t, fx = fc ? fc.t : [], f = frame(x, s.w, s.h, padL, padR, 8, 18, hx, fx);
+    VIP.forEach(function (d) {
+      var hy = S[d.k], fy = fc ? fc[d.k] : [], rg = range(hy, fy, d);
+      var Y = function (v) { return f.padT + f.ph * (1 - (v - rg[0]) / (rg[1] - rg[0])); };
+      x.fillStyle = d.col;
+      var lx = d.ax === 0 ? 2 : s.w - padR + 6 + (d.ax - 1) * 48;
+      for (var g = 0; g <= 4; g++) x.fillText((rg[1] - (rg[1] - rg[0]) * g / 4).toFixed(d.dec), lx, f.padT + f.ph * g / 4 + 3);
+      line(x, f.X, Y, hx, hy, fx, fy, d.col, f.nowX);
+    });
+  }
+
+  function drawAll() {
+    var p = ports[activePortIndex], S = p.ses, an = p.an;
+    var lines = [[p.mode === "manual" ? p.target : p.th.stop, "rgba(224,171,84,.8)"]];
+    if (p.mode === "auto") lines.push([p.th.start, "rgba(226,104,90,.7)"]);
+    plot("cv-s", "s", { min: 0, max: 100, dec: 0, lines: lines });
+    plot("cv-t", "T", { dec: 1, span: 4, lines: [[p.th.temp, "rgba(226,104,90,.7)"]] });
+    plotVIP();
+    $("eta-lbl").textContent = S && an && p.relay && an.fc.eta != null ? "Target in ~" + fmtDur(an.fc.eta) : "";
+    var live = S && S.t.length;
+    $("k-v").textContent = live && isNum(p.V) ? p.V.toFixed(3) + " V" : "--";
+    $("k-i").textContent = live && isNum(p.I) ? (p.I * 1000).toFixed(2) + " mA" : "--";
+    $("k-p").textContent = live && isNum(p.V) && isNum(p.I) ? (p.V * p.I).toFixed(3) + " W" : "--";
+  }
+
+  window.addEventListener("resize", drawAll);
+  setInterval(render, 1500);
+  render();
+})();
+</script>
+</body>
+</html>
