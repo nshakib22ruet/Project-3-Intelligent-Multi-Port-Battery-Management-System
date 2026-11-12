@@ -3,158 +3,171 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Md. Najmus Shakib - Project Portfolio</title>
+<title>Intelligent Multi-Port Battery Management System - Md. Najmus Shakib</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#14302f;--bg:#f5f7f6;--card:#fff;--line:#d5dfdc;--accent:#c98a0b;--soft:#e4eeeb;--muted:#4d6361}
+:root{--bg:#060d18;--card:#0b1828;--line:#1b3048;--accent:#38bdf8;--text:#e6eef7;--muted:#8fa3b8}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.65 "IBM Plex Sans",system-ui,sans-serif}
-header{background:var(--ink);color:#f5f7f6;padding:3.5rem 1.25rem 3rem;text-align:center}
-header h1{font:600 clamp(1.6rem,4vw,2.5rem)/1.2 "IBM Plex Serif",Georgia,serif;max-width:22ch;margin:0 auto 1rem}
-header p{margin:.2rem 0;color:#c9d8d5}
-.members{margin-top:1.25rem;font-weight:500;color:#fff}
-main{max-width:860px;margin:0 auto;padding:1rem 1.25rem 3rem}
-section{margin-top:2.5rem}
-h2{font:600 1.5rem/1.3 "IBM Plex Serif",Georgia,serif;margin:0 0 .75rem;padding-left:.75rem;border-left:4px solid var(--accent)}
-p{max-width:70ch}
-figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.75rem}
-figure img{display:block;width:100%;height:auto;border-radius:3px}
-figcaption{font-size:.9rem;color:var(--muted);margin-top:.5rem}
-ul.parts{columns:2;column-gap:2rem;padding-left:1.2rem}
-ul.parts li{margin-bottom:.3rem}
-ol.steps{list-style:none;counter-reset:s;padding:0;margin:0}
-ol.steps li{counter-increment:s;position:relative;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.75rem 1rem .75rem 3.2rem;margin-bottom:.6rem}
-ol.steps li::before{content:counter(s);position:absolute;left:.8rem;top:.75rem;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--ink);color:#fff;font-size:.85rem;font-weight:600;display:grid;place-items:center}
-ol.steps b{font-weight:600}
-.summary{background:var(--soft);border-left:4px solid var(--ink);padding:1rem 1.25rem;border-radius:0 6px 6px 0;margin-top:1rem}
-.files{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.9rem}
-.files a{display:block;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1rem;color:inherit;text-decoration:none}
-.files a:hover,.files a:focus-visible{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:2px}
-.files strong{display:block;font-weight:600}
-.files span{font-size:.9rem;color:var(--muted)}
-footer{background:var(--ink);color:#c9d8d5;padding:2rem 1.25rem;text-align:center}
-footer h3{font:600 1.3rem "IBM Plex Serif",Georgia,serif;color:#fff;margin:0 0 .5rem}
-footer a{color:#f2c25b}
-@media(max-width:600px){ul.parts{columns:1}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:radial-gradient(1000px 500px at 10% -5%,#0e2a40 0,transparent 60%),var(--bg);color:var(--text);font:400 1rem/1.75 Inter,system-ui,sans-serif}
+#net{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:0 1.25rem}
+.back{display:inline-block;margin:1.5rem 0 1rem;color:var(--accent);text-decoration:none;font:500 .9rem "JetBrains Mono",monospace}
+.back:hover,.back:focus-visible{text-decoration:underline;outline:none}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:1.25rem;align-items:stretch}
+.left{display:flex;flex-direction:column;gap:1.25rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.4rem}
+.title{text-align:center}
+.kicker{font:500 .75rem "JetBrains Mono",monospace;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
+h1{font:700 clamp(1.4rem,3vw,2rem)/1.25 "Space Grotesk",sans-serif;margin:.5rem 0}
+.name{font-weight:500}
+.sub{color:var(--muted);font-size:.9rem;margin:0}
+.overview{flex:1}
+h2{font:600 1.5rem/1.3 "Space Grotesk",sans-serif;margin:0 0 1rem}
+h2::after{content:"";display:block;width:44px;height:3px;background:var(--accent);margin-top:.45rem;border-radius:2px}
+h3{font:600 1.1rem "Space Grotesk",sans-serif;margin:0 0 .6rem;color:var(--accent)}
+p{color:var(--muted);margin:0 0 1rem}
+.overview p{margin:0}
+.shot{margin:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.7rem;display:flex;flex-direction:column}
+.shot img{width:100%;flex:1;min-height:260px;object-fit:cover;border-radius:8px;display:block}
+.shot figcaption{text-align:center;font-size:.85rem;color:var(--muted);margin-top:.5rem}
+section{margin-top:3rem}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:left;padding:.75rem 1rem;border-bottom:1px solid var(--line)}
+th{font:500 .8rem "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:#0e2033}
+td{color:var(--muted);font-size:.95rem}
+td:first-child{width:3rem;font-family:"JetBrains Mono",monospace;color:var(--accent)}
+td:nth-child(2){color:var(--text);font-weight:500;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#0e2033}
+.links{display:flex;flex-direction:column;gap:.7rem}
+.links a{display:flex;align-items:center;gap:1rem;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.9rem 1.1rem;color:var(--text);text-decoration:none;transition:.2s}
+.links a:hover,.links a:focus-visible{border-color:var(--accent);transform:translateX(5px);outline:none}
+.links .n{font:500 .85rem "JetBrains Mono",monospace;color:var(--accent);width:1.6rem}
+.links strong{font:600 1rem "Space Grotesk",sans-serif;display:block}
+.links small{color:var(--muted);font-size:.85rem}
+.links .go{margin-left:auto;color:var(--accent)}
+footer{position:relative;z-index:1;text-align:center;padding:2.5rem 1.25rem;margin-top:3rem;border-top:1px solid var(--line);color:var(--muted)}
+footer a{color:var(--accent)}
+.rv{opacity:0;transform:translateY(18px);transition:opacity .6s,transform .6s}
+.rv.in{opacity:1;transform:none}
+@media(max-width:760px){.hero{grid-template-columns:1fr}.shot img{min-height:220px}}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
+<canvas id="net" aria-hidden="true"></canvas>
 
-<header>
-  <h1>ESP32-Based Intelligent Multi-Port Battery Management System</h1>
-  <p>Department of Electrical &amp; Electronic Engineering (EEE)</p>
-  <p>Rajshahi University of Engineering &amp; Technology (RUET)</p>
-  <div class="members">
-    Project Members:<br>
-    1. Md. Najmus Shakib
-    <!-- Add more members here, e.g. <br>2. Name (ID: xxxxxxx) -->
+<div class="wrap">
+  <!-- Change this link if your main portfolio address is different -->
+  <a class="back" href="https://nshakib22ruet.github.io/">&larr; Back to portfolio</a>
+
+  <div class="hero">
+    <div class="left">
+      <div class="card title">
+        <div class="kicker">Project 3</div>
+        <h1>ESP32-Based Intelligent Multi-Port Battery Management System</h1>
+        <div class="name">Md. Najmus Shakib</div>
+        <p class="sub">EEE, Rajshahi University of Engineering &amp; Technology (RUET)</p>
+      </div>
+      <div class="card overview">
+        <h3>Overview</h3>
+        <p>An ESP32-based system that charges and supervises multiple batteries at the same time. It measures voltage, current and temperature on each charging path, switches the paths through relays in manual or automatic mode, and shows the live data on a dashboard. A machine learning model can use the same data to judge battery condition and spot possible degradation.</p>
+      </div>
+    </div>
+    <figure class="shot">
+      <img src="Images/Setup%20image1.jpeg" alt="Full hardware setup of the multi-port battery management system">
+      <figcaption>Full hardware setup</figcaption>
+    </figure>
   </div>
-</header>
 
-<main>
+  <section class="rv">
+    <h2>About the Project</h2>
+    <p>The system takes 220 V AC mains as its power source. A step-down transformer lowers the voltage, a bridge rectifier converts it to DC, and a filter capacitor smooths the result. An L7805CV regulator then supplies a steady 5 V to the relay module, while an LM2596 buck converter adjusts the charging voltage for Battery Port 2.</p>
+    <p>The ESP32 is the central controller. It operates the relay channels that connect or disconnect each charging path, following the manual or automatic operating mode. INA219 sensors measure the voltage and current of the connected charging paths, and two DS18B20 sensors measure battery temperature. The ESP32 collects all of these readings continuously in real time.</p>
+    <p>From the readings, the software estimates battery voltage percentage, charging current, internal resistance (when valid measurement conditions are available) and temperature status. It then compares voltage, current variation, estimated resistance and temperature to identify possible battery degradation. The same data can be passed to a machine learning model that classifies battery condition and supports health assessment.</p>
+    <p>A dashboard displays real-time battery information, charging status, temperature, estimated health and relay status, with Bluetooth communication between the ESP32 and the monitoring interface where implemented. Together, the sensor measurements, programmed control logic and machine learning predictions manage the multiple charging ports, raise protection alerts and improve charging supervision.</p>
+  </section>
 
-<section>
-  <h2>Experimental Setup</h2>
-  <figure>
-    <img src="Images/Setup%20image1.jpeg" alt="Full hardware setup of the multi-port battery management system">
-    <figcaption>Full hardware setup.</figcaption>
-  </figure>
-</section>
+  <section class="rv">
+    <h2>Components</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>#</th><th>Component</th><th>Role in the system</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>220 V AC mains</td><td>Primary power source of the system</td></tr>
+          <tr><td>2</td><td>Step-down transformer</td><td>Reduces the AC mains voltage to a lower, suitable AC voltage</td></tr>
+          <tr><td>3</td><td>Bridge rectifier</td><td>Converts the transformer's AC output into DC</td></tr>
+          <tr><td>4</td><td>Filter capacitor</td><td>Smooths the rectified DC for a more stable supply</td></tr>
+          <tr><td>5</td><td>L7805CV regulator</td><td>Provides regulated 5 V for the relay module</td></tr>
+          <tr><td>6</td><td>LM2596 buck converter</td><td>Adjusts the charging voltage for Battery Port 2</td></tr>
+          <tr><td>7</td><td>ESP32</td><td>Central controller: sensing, relay control, monitoring and communication</td></tr>
+          <tr><td>8</td><td>Relay module</td><td>Connects or disconnects each charging path (manual or automatic mode)</td></tr>
+          <tr><td>9</td><td>INA219 sensors</td><td>Measure voltage and current of the charging paths</td></tr>
+          <tr><td>10</td><td>DS18B20 sensors (2)</td><td>Measure battery temperature during charging</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-<section>
-  <h2>Abstract</h2>
-  <p>This project presents an ESP32-based intelligent multi-port battery management system that charges and supervises several batteries at once. The ESP32 reads voltage, current and temperature from INA219 and DS18B20 sensors, switches each charging path through relays in manual or automatic mode, and sends the data to a dashboard over Bluetooth. From these readings the software estimates battery percentage, charging current, internal resistance and temperature status, and a machine learning model can classify battery condition to support health assessment and early detection of degradation.</p>
-</section>
+  <section class="rv">
+    <h2>Output</h2>
+    <figure class="shot">
+      <img src="Images/Web%20image.png" alt="Battery monitoring dashboard showing port status, voltage, current and temperature" style="min-height:0;flex:none">
+      <figcaption>Web dashboard output</figcaption>
+    </figure>
+  </section>
 
-<section>
-  <h2>Required Components</h2>
-  <ul class="parts">
-    <li>220 V AC mains supply</li>
-    <li>Step-down transformer</li>
-    <li>Bridge rectifier</li>
-    <li>Filter capacitor</li>
-    <li>L7805CV 5 V regulator</li>
-    <li>LM2596 buck converter</li>
-    <li>ESP32 controller</li>
-    <li>Relay module</li>
-    <li>INA219 voltage/current sensors</li>
-    <li>DS18B20 temperature sensors (2)</li>
-    <li>Batteries under charge</li>
-  </ul>
-</section>
-
-<section>
-  <h2>Circuit Diagram &amp; Connection Guideline</h2>
-  <p>The wiring diagram and connection guideline are provided as a PDF.</p>
-  <div class="files">
-    <a href="Diagram%20and%20cinnection%20guideline.pdf" target="_blank" rel="noopener">
-      <strong>Open diagram and connection guideline (PDF)</strong>
-      <span>Opens the PDF from this repository</span>
-    </a>
-  </div>
-</section>
-
-<section>
-  <h2>Working Principle</h2>
-  <ol class="steps">
-    <li><b>AC Power Input:</b> The system receives 220 V AC mains electricity as its primary power source.</li>
-    <li><b>Voltage Transformation:</b> A step-down transformer reduces the high AC mains voltage to a lower AC voltage suitable for the system.</li>
-    <li><b>AC-to-DC Conversion:</b> A bridge rectifier converts the transformer's AC output into DC voltage.</li>
-    <li><b>DC Filtering:</b> A filter capacitor smooths the rectified DC voltage to provide a more stable power supply.</li>
-    <li><b>Voltage Regulation:</b> An L7805CV regulator provides regulated 5 V for the relay module, while an LM2596 buck converter adjusts the charging voltage for Battery Port 2.</li>
-    <li><b>ESP32 Controller:</b> The ESP32 acts as the central controller, managing sensor readings, relay operations, battery monitoring and communication.</li>
-    <li><b>Relay-Based Control:</b> The ESP32 controls individual relay channels to connect or disconnect the charging paths according to manual or automatic operating modes.</li>
-    <li><b>Voltage and Current Monitoring:</b> INA219 sensors measure the voltage and current of the connected battery charging paths.</li>
-    <li><b>Temperature Monitoring:</b> Two DS18B20 temperature sensors measure battery temperature to monitor thermal conditions during charging.</li>
-    <li><b>Real-Time Data Collection:</b> The ESP32 continuously collects voltage, current and temperature measurements from the sensors.</li>
-    <li><b>Battery Parameter Calculation:</b> The software processes sensor readings to estimate battery voltage percentage, charging current, internal resistance (when valid measurement conditions are available) and temperature status.</li>
-    <li><b>Battery Condition Assessment:</b> The system evaluates battery behaviour using voltage, current variation, estimated resistance and temperature to identify possible battery degradation.</li>
-    <li><b>Machine Learning Analysis:</b> The collected battery data can be processed by a machine learning model to classify battery conditions and support intelligent battery health assessment.</li>
-    <li><b>User Interface and Communication:</b> A dashboard displays real-time battery information, charging status, temperature, estimated health and relay status, with Bluetooth communication between the ESP32 and the monitoring interface where implemented.</li>
-    <li><b>Intelligent Battery Management:</b> Finally, the system uses sensor measurements, programmed control logic and machine learning predictions to manage multiple battery charging ports, provide protection alerts and improve charging supervision.</li>
-  </ol>
-  <div class="summary"><b>Overall working principle:</b> The system integrates power conversion, ESP32-based control, sensor monitoring, relay switching, software-based battery analysis and machine learning to develop an intelligent multi-port battery management platform.</div>
-</section>
-
-<section>
-  <h2>Monitoring Dashboard</h2>
-  <figure>
-    <img src="Images/Web%20image.png" alt="Battery monitoring dashboard showing port status, voltage, current and temperature">
-    <figcaption>Web dashboard interface.</figcaption>
-  </figure>
-</section>
-
-<section>
-  <h2>Code &amp; Project Files</h2>
-  <p>Each link opens the file directly from the GitHub repository.</p>
-  <div class="files">
-    <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Project%20IDE_%20code.ino" target="_blank" rel="noopener">
-      <strong>ESP32 Arduino IDE code (.ino)</strong>
-      <span>Open the source code on GitHub</span>
-    </a>
-    <!-- Replace the file name below with the full name of your dashboard file -->
-    <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Smart_Battery_Dashboard_Improved_Resistance.html" target="_blank" rel="noopener">
-      <strong>Dashboard source code</strong>
-      <span>Open the dashboard file on GitHub</span>
-    </a>
-    <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System" target="_blank" rel="noopener">
-      <strong>Full repository</strong>
-      <span>All files, images and README</span>
-    </a>
-  </div>
-</section>
-
-</main>
+  <section class="rv">
+    <h2>All Links</h2>
+    <div class="links">
+      <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Project%20IDE_%20code.ino" target="_blank" rel="noopener">
+        <span class="n">01</span><span><strong>ESP32 Arduino IDE code</strong><small>Opens the .ino file on GitHub</small></span><span class="go">&rarr;</span></a>
+      <!-- Replace the file name below with the full name of your dashboard file -->
+      <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Smart_Battery_Dashboard_Improved_Resistance.html" target="_blank" rel="noopener">
+        <span class="n">02</span><span><strong>Dashboard source code</strong><small>Opens the dashboard file on GitHub</small></span><span class="go">&rarr;</span></a>
+      <a href="Diagram%20and%20cinnection%20guideline.pdf" target="_blank" rel="noopener">
+        <span class="n">03</span><span><strong>Diagram and connection guideline</strong><small>PDF</small></span><span class="go">&rarr;</span></a>
+      <a href="Smart_Battery_Charger_Project_Proposal.pdf" target="_blank" rel="noopener">
+        <span class="n">04</span><span><strong>Project proposal</strong><small>PDF</small></span><span class="go">&rarr;</span></a>
+      <!-- Replace hkjahsfdjg with your real YouTube video ID -->
+      <a href="https://www.youtube.com/watch?v=hkjahsfdjg" target="_blank" rel="noopener">
+        <span class="n">05</span><span><strong>Project video</strong><small>YouTube</small></span><span class="go">&rarr;</span></a>
+      <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System" target="_blank" rel="noopener">
+        <span class="n">06</span><span><strong>Full GitHub repository</strong><small>All files, images and README</small></span><span class="go">&rarr;</span></a>
+    </div>
+  </section>
+</div>
 
 <footer>
-  <h3>Md. Najmus Shakib</h3>
-  <p>EEE Student at RUET, Rajshahi, Bangladesh</p>
-  <p><a href="https://github.com/nshakib22ruet" target="_blank" rel="noopener">github.com/nshakib22ruet</a></p>
-  <p>&copy; Md. Najmus Shakib. All rights reserved.</p>
+  <p>&copy; Md. Najmus Shakib &middot; <a href="https://github.com/nshakib22ruet" target="_blank" rel="noopener">github.com/nshakib22ruet</a></p>
 </footer>
 
+<script>
+(function(){
+  var rm=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var els=document.querySelectorAll(".rv");
+  if("IntersectionObserver" in window&&!rm){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}})},{threshold:.08});
+    els.forEach(function(el){io.observe(el)});
+  }else{els.forEach(function(el){el.classList.add("in")})}
+  var c=document.getElementById("net"),x=c.getContext("2d"),w,h,pts=[];
+  function size(){w=c.width=innerWidth;h=c.height=innerHeight;
+    var n=Math.min(70,Math.floor(w*h/22000));pts=[];
+    for(var i=0;i<n;i++)pts.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25});}
+  function draw(){
+    x.clearRect(0,0,w,h);
+    for(var i=0;i<pts.length;i++){var p=pts[i];
+      if(!rm){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;}
+      x.fillStyle="rgba(56,189,248,.5)";x.beginPath();x.arc(p.x,p.y,1.6,0,6.283);x.fill();
+      for(var j=i+1;j<pts.length;j++){var q=pts[j],dx=p.x-q.x,dy=p.y-q.y,d=dx*dx+dy*dy;
+        if(d<19000){x.strokeStyle="rgba(56,189,248,"+(.16*(1-d/19000))+")";x.beginPath();x.moveTo(p.x,p.y);x.lineTo(q.x,q.y);x.stroke();}}}
+    if(!rm)requestAnimationFrame(draw);
+  }
+  size();draw();addEventListener("resize",function(){size();if(rm)draw()});
+})();
+</script>
 </body>
 </html>
