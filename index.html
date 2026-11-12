@@ -15,24 +15,21 @@ body{margin:0;background:radial-gradient(1000px 500px at 10% -5%,#0e2a40 0,trans
 .wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:0 1.25rem}
 .back{display:inline-block;margin:1.5rem 0 1rem;color:var(--accent);text-decoration:none;font:500 .9rem "JetBrains Mono",monospace}
 .back:hover,.back:focus-visible{text-decoration:underline;outline:none}
-.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:1.25rem;align-items:stretch}
-.left{display:flex;flex-direction:column;gap:1.25rem}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.4rem}
-.title{text-align:center}
-.kicker{font:500 .75rem "JetBrains Mono",monospace;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
-h1{font:700 clamp(1.4rem,3vw,2rem)/1.25 "Space Grotesk",sans-serif;margin:.5rem 0}
-.name{font-weight:500}
-.sub{color:var(--muted);font-size:.9rem;margin:0}
-.overview{flex:1}
-h2{font:600 1.5rem/1.3 "Space Grotesk",sans-serif;margin:0 0 1rem}
-h2::after{content:"";display:block;width:44px;height:3px;background:var(--accent);margin-top:.45rem;border-radius:2px}
-h3{font:600 1.1rem "Space Grotesk",sans-serif;margin:0 0 .6rem;color:var(--accent)}
-p{color:var(--muted);margin:0 0 1rem}
-.overview p{margin:0}
-.shot{margin:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.7rem;display:flex;flex-direction:column}
-.shot img{width:100%;flex:1;min-height:260px;object-fit:cover;border-radius:8px;display:block}
-.shot figcaption{text-align:center;font-size:.85rem;color:var(--muted);margin-top:.5rem}
+.hero-card{display:grid;grid-template-columns:1.15fr .85fr;gap:2rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.8rem}
+.hero-info{display:flex;flex-direction:column;justify-content:center}
+.kicker{font:500 .75rem "JetBrains Mono",monospace;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.35rem}
+h1{font:700 clamp(1.45rem,2.8vw,2rem)/1.25 "Space Grotesk",sans-serif;margin:0 0 .6rem}
+.meta{font-size:.95rem;color:var(--text);font-weight:500;margin-bottom:.15rem}
+.sub{color:var(--muted);font-size:.88rem;margin:0 0 1.1rem;padding-bottom:1rem;border-bottom:1px solid var(--line)}
+.overview-label{font:500 .75rem "JetBrains Mono",monospace;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.45rem}
+.hero-info p.desc{color:var(--muted);font-size:.96rem;line-height:1.7;margin:0}
+.shot{margin:0;display:flex;flex-direction:column}
+.shot img{width:100%;min-height:260px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
+.shot figcaption{text-align:center;font-size:.83rem;color:var(--muted);margin-top:.55rem}
 section{margin-top:3rem}
+h2{font:600 1.5rem/1.3 "Space Grotesk",sans-serif;margin:0 0 1.1rem}
+h2::after{content:"";display:block;width:44px;height:3px;background:var(--accent);margin-top:.45rem;border-radius:2px}
+p{color:var(--muted);margin:0 0 1rem}
 .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 table{width:100%;border-collapse:collapse;min-width:520px}
 th,td{text-align:left;padding:.75rem 1rem;border-bottom:1px solid var(--line)}
@@ -42,18 +39,22 @@ td:first-child{width:3rem;font-family:"JetBrains Mono",monospace;color:var(--acc
 td:nth-child(2){color:var(--text);font-weight:500;white-space:nowrap}
 tr:last-child td{border-bottom:0}
 tbody tr:hover td{background:#0e2033}
-.links{display:flex;flex-direction:column;gap:.7rem}
-.links a{display:flex;align-items:center;gap:1rem;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.9rem 1.1rem;color:var(--text);text-decoration:none;transition:.2s}
-.links a:hover,.links a:focus-visible{border-color:var(--accent);transform:translateX(5px);outline:none}
-.links .n{font:500 .85rem "JetBrains Mono",monospace;color:var(--accent);width:1.6rem}
-.links strong{font:600 1rem "Space Grotesk",sans-serif;display:block}
-.links small{color:var(--muted);font-size:.85rem}
-.links .go{margin-left:auto;color:var(--accent)}
-footer{position:relative;z-index:1;text-align:center;padding:2.5rem 1.25rem;margin-top:3rem;border-top:1px solid var(--line);color:var(--muted)}
-footer a{color:var(--accent)}
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:.9rem}
+.icon-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.65rem;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.25rem .85rem;color:var(--text);text-decoration:none;text-align:center;transition:border-color .2s,transform .2s,background .2s}
+.icon-tile:hover,.icon-tile:focus-visible{border-color:var(--accent);background:#0e2033;transform:translateY(-3px);outline:none}
+.icon-tile svg{width:26px;height:26px;color:var(--accent);flex-shrink:0}
+.icon-tile span{font:500 .88rem "Space Grotesk",sans-serif;line-height:1.3}
+.icon-tile small{font:400 .75rem "JetBrains Mono",monospace;color:var(--muted)}
+.bottom-meta{margin-top:3rem;padding-top:1.75rem;border-top:1px solid var(--line)}
+.tags{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1.25rem}
+.tag{font:500 .85rem "JetBrains Mono",monospace;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:.45rem .85rem}
+.repo-btn{display:inline-flex;align-items:center;gap:.65rem;font:500 .9rem "JetBrains Mono",monospace;color:var(--accent);background:rgba(56,189,248,.05);border:1px solid var(--accent);border-radius:8px;padding:.75rem 1.25rem;text-decoration:none;transition:background .2s,transform .2s}
+.repo-btn:hover,.repo-btn:focus-visible{background:rgba(56,189,248,.14);transform:translateY(-2px);outline:none}
+.repo-btn svg{width:18px;height:18px;fill:currentColor}
+footer{position:relative;z-index:1;text-align:center;padding:2rem 1.25rem;margin-top:2.5rem;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
 .rv{opacity:0;transform:translateY(18px);transition:opacity .6s,transform .6s}
 .rv.in{opacity:1;transform:none}
-@media(max-width:760px){.hero{grid-template-columns:1fr}.shot img{min-height:220px}}
+@media(max-width:780px){.hero-card{grid-template-columns:1fr;padding:1.35rem}.shot img{min-height:220px}}
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
 </style>
 </head>
@@ -61,21 +62,16 @@ footer a{color:var(--accent)}
 <canvas id="net" aria-hidden="true"></canvas>
 
 <div class="wrap">
-  <!-- Change this link if your main portfolio address is different -->
   <a class="back" href="https://nshakib22ruet.github.io/">&larr; Back to portfolio</a>
 
-  <div class="hero">
-    <div class="left">
-      <div class="card title">
-        <div class="kicker">Project 3</div>
-        <h1>ESP32-Based Intelligent Multi-Port Battery Management System</h1>
-        <div class="name">Md. Najmus Shakib</div>
-        <p class="sub">EEE, Rajshahi University of Engineering &amp; Technology (RUET)</p>
-      </div>
-      <div class="card overview">
-        <h3>Overview</h3>
-        <p>An ESP32-based system that charges and supervises multiple batteries at the same time. It measures voltage, current and temperature on each charging path, switches the paths through relays in manual or automatic mode, and shows the live data on a dashboard. A machine learning model can use the same data to judge battery condition and spot possible degradation.</p>
-      </div>
+  <div class="hero-card">
+    <div class="hero-info">
+      <div class="kicker">Project 3</div>
+      <h1>ESP32-Based Intelligent Multi-Port Battery Management System</h1>
+      <div class="meta">Md. Najmus Shakib</div>
+      <p class="sub">Department of Electrical &amp; Electronic Engineering (EEE), RUET</p>
+      <div class="overview-label">Overview</div>
+      <p class="desc">An ESP32-based system that charges and supervises multiple batteries simultaneously. It measures voltage, current, and temperature across each charging path, switches paths through relays in manual or automatic mode, and streams live telemetry to a web dashboard. A regression-based machine learning model evaluates temperature rise and electrical parameters to classify battery health and detect degradation.</p>
     </div>
     <figure class="shot">
       <img src="Images/Setup%20image1.jpeg" alt="Full hardware setup of the multi-port battery management system">
@@ -85,10 +81,10 @@ footer a{color:var(--accent)}
 
   <section class="rv">
     <h2>About the Project</h2>
-    <p>The system takes 220 V AC mains as its power source. A step-down transformer lowers the voltage, a bridge rectifier converts it to DC, and a filter capacitor smooths the result. An L7805CV regulator then supplies a steady 5 V to the relay module, while an LM2596 buck converter adjusts the charging voltage for Battery Port 2.</p>
-    <p>The ESP32 is the central controller. It operates the relay channels that connect or disconnect each charging path, following the manual or automatic operating mode. INA219 sensors measure the voltage and current of the connected charging paths, and two DS18B20 sensors measure battery temperature. The ESP32 collects all of these readings continuously in real time.</p>
-    <p>From the readings, the software estimates battery voltage percentage, charging current, internal resistance (when valid measurement conditions are available) and temperature status. It then compares voltage, current variation, estimated resistance and temperature to identify possible battery degradation. The same data can be passed to a machine learning model that classifies battery condition and supports health assessment.</p>
-    <p>A dashboard displays real-time battery information, charging status, temperature, estimated health and relay status, with Bluetooth communication between the ESP32 and the monitoring interface where implemented. Together, the sensor measurements, programmed control logic and machine learning predictions manage the multiple charging ports, raise protection alerts and improve charging supervision.</p>
+    <p>The system takes 220 V AC mains as its primary power source. A step-down transformer lowers the voltage, a bridge rectifier converts it to DC, and a filter capacitor smooths the rectified output. An L7805CV linear regulator supplies a steady 5 V to the 4-channel relay module, while an LM2596 buck converter regulates the charging voltage for Battery Port 2.</p>
+    <p>The ESP32 acts as the central controller, operating the relay channels that connect or disconnect each charging path under manual or automatic safety thresholds. Dual INA219 sensors measure voltage and current on separate I2C buses, while two DS18B20 1-Wire sensors monitor real-time battery temperature.</p>
+    <p>From these live sensor readings, the firmware estimates state-of-charge percentage, charging current, internal resistance (under valid load conditions), and thermal rate of rise. These parameters feed a regression model that classifies battery health and triggers automated relay cutoffs upon over-temperature or fault conditions.</p>
+    <p>A real-time web dashboard displays port status, voltage, current, temperature, estimated battery health, and relay states over Bluetooth/serial telemetry, combining hardware protection with predictive diagnostics.</p>
   </section>
 
   <section class="rv">
@@ -98,14 +94,14 @@ footer a{color:var(--accent)}
         <thead><tr><th>#</th><th>Component</th><th>Role in the system</th></tr></thead>
         <tbody>
           <tr><td>1</td><td>220 V AC mains</td><td>Primary power source of the system</td></tr>
-          <tr><td>2</td><td>Step-down transformer</td><td>Reduces the AC mains voltage to a lower, suitable AC voltage</td></tr>
-          <tr><td>3</td><td>Bridge rectifier</td><td>Converts the transformer's AC output into DC</td></tr>
-          <tr><td>4</td><td>Filter capacitor</td><td>Smooths the rectified DC for a more stable supply</td></tr>
+          <tr><td>2</td><td>Step-down transformer</td><td>Reduces AC mains voltage to a lower AC level</td></tr>
+          <tr><td>3</td><td>Bridge rectifier</td><td>Converts transformer AC output into DC</td></tr>
+          <tr><td>4</td><td>Filter capacitor</td><td>Smooths rectified DC for stable supply</td></tr>
           <tr><td>5</td><td>L7805CV regulator</td><td>Provides regulated 5 V for the relay module</td></tr>
-          <tr><td>6</td><td>LM2596 buck converter</td><td>Adjusts the charging voltage for Battery Port 2</td></tr>
-          <tr><td>7</td><td>ESP32</td><td>Central controller: sensing, relay control, monitoring and communication</td></tr>
-          <tr><td>8</td><td>Relay module</td><td>Connects or disconnects each charging path (manual or automatic mode)</td></tr>
-          <tr><td>9</td><td>INA219 sensors</td><td>Measure voltage and current of the charging paths</td></tr>
+          <tr><td>6</td><td>LM2596 buck converter</td><td>Adjusts charging voltage for Battery Port 2</td></tr>
+          <tr><td>7</td><td>ESP32</td><td>Central controller: sensing, relay logic, ML inference, and telemetry</td></tr>
+          <tr><td>8</td><td>4-Channel Relay module</td><td>Connects or disconnects each charging path (manual or automatic)</td></tr>
+          <tr><td>9</td><td>INA219 sensors (2)</td><td>Measure voltage and current of the charging paths</td></tr>
           <tr><td>10</td><td>DS18B20 sensors (2)</td><td>Measure battery temperature during charging</td></tr>
         </tbody>
       </table>
@@ -115,34 +111,63 @@ footer a{color:var(--accent)}
   <section class="rv">
     <h2>Output</h2>
     <figure class="shot">
-      <img src="Images/Web%20image.png" alt="Battery monitoring dashboard showing port status, voltage, current and temperature" style="min-height:0;flex:none">
+      <img src="Images/Web%20image.png" alt="Battery monitoring dashboard showing port status, voltage, current and temperature" style="min-height:0">
       <figcaption>Web dashboard output</figcaption>
     </figure>
   </section>
 
   <section class="rv">
-    <h2>All Links</h2>
-    <div class="links">
-      <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Project%20IDE_%20code.ino" target="_blank" rel="noopener">
-        <span class="n">01</span><span><strong>ESP32 Arduino IDE code</strong><small>Opens the .ino file on GitHub</small></span><span class="go">&rarr;</span></a>
-      <!-- Replace the file name below with the full name of your dashboard file -->
-      <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Smart_Battery_Dashboard_Improved_Resistance.html" target="_blank" rel="noopener">
-        <span class="n">02</span><span><strong>Dashboard source code</strong><small>Opens the dashboard file on GitHub</small></span><span class="go">&rarr;</span></a>
-      <a href="Diagram%20and%20cinnection%20guideline.pdf" target="_blank" rel="noopener">
-        <span class="n">03</span><span><strong>Diagram and connection guideline</strong><small>PDF</small></span><span class="go">&rarr;</span></a>
-      <a href="Smart_Battery_Charger_Project_Proposal.pdf" target="_blank" rel="noopener">
-        <span class="n">04</span><span><strong>Project proposal</strong><small>PDF</small></span><span class="go">&rarr;</span></a>
-      <!-- Replace hkjahsfdjg with your real YouTube video ID -->
-      <a href="https://www.youtube.com/watch?v=hkjahsfdjg" target="_blank" rel="noopener">
-        <span class="n">05</span><span><strong>Project video</strong><small>YouTube</small></span><span class="go">&rarr;</span></a>
-      <a href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System" target="_blank" rel="noopener">
-        <span class="n">06</span><span><strong>Full GitHub repository</strong><small>All files, images and README</small></span><span class="go">&rarr;</span></a>
+    <h2>Project Resources</h2>
+    <div class="icon-grid">
+      <a class="icon-tile" href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Project%20IDE_%20code.ino" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span>ESP32 Firmware</span>
+        <small>.ino Code</small>
+      </a>
+      <a class="icon-tile" href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System/blob/main/Smart_Battery_Dashboard_Improved_Resistance.html" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <span>Web Dashboard</span>
+        <small>HTML Source</small>
+      </a>
+      <a class="icon-tile" href="Diagram%20and%20cinnection%20guideline.pdf" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+        <span>Circuit Diagram</span>
+        <small>PDF Guide</small>
+      </a>
+      <a class="icon-tile" href="Smart_Battery_Charger_Project_Proposal.pdf" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Project Proposal</span>
+        <small>PDF Document</small>
+      </a>
+      <a class="icon-tile" href="https://www.youtube.com/watch?v=hkjahsfdjg" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>Demo Video</span>
+        <small>YouTube</small>
+      </a>
+      <a class="icon-tile" href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.1-.4-.6-1.6.1-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+        <span>GitHub Repo</span>
+        <small>Full Source</small>
+      </a>
     </div>
   </section>
+
+  <div class="bottom-meta rv">
+    <div class="tags">
+      <span class="tag">ESP32</span>
+      <span class="tag">BLE</span>
+      <span class="tag">Regression Model</span>
+      <span class="tag">Embedded C</span>
+    </div>
+    <a class="repo-btn" href="https://github.com/nshakib22ruet/Project-3-Intelligent-Multi-Port-Battery-Management-System" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.1-.4-.6-1.6.1-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+      View GitHub Repository
+    </a>
+  </div>
 </div>
 
 <footer>
-  <p>&copy; Md. Najmus Shakib &middot; <a href="https://github.com/nshakib22ruet" target="_blank" rel="noopener">github.com/nshakib22ruet</a></p>
+  &copy; 2026 Md. Najmus Shakib &middot; Hosted on GitHub Pages
 </footer>
 
 <script>
