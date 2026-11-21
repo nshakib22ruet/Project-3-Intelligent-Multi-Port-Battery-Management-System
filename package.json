@@ -1,11 +1,16 @@
 {
-  "name": "multi-port-bms-app",
+  "name": "smart-battery-management-app",
   "version": "1.0.0",
+  "private": true,
+  "description": "ESP32 Smart Battery Management System mobile application",
+  "scripts": {
+    "android": "cap sync android"
+  },
   "dependencies": {
-    "@capacitor/core": "^6.0.0",
-    "@capacitor/android": "^6.0.0"
+    "@capacitor/core": "6.2.1",
+    "@capacitor/android": "6.2.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0"
+    "@capacitor/cli": "6.2.1"
   }
 }
