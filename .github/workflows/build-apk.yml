@@ -75,7 +75,7 @@ jobs:
             -exec cp {} www/ \;
 
       - name: Create Android project
-        run: npx cap add android --no-interactive
+        run: npx cap add android
 
       - name: Sync Capacitor Android
         run: npx cap sync android
