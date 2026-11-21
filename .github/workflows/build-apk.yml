@@ -49,13 +49,14 @@ jobs:
             "platforms;android-35" \
             "build-tools;35.0.0"
 
-      - name: Install Node dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Prepare website files
+      - name: Prepare dashboard for Android
         run: |
           mkdir -p www
-          cp index.html www/
+
+          cp "Smart_Battery_Dashboard.html" www/index.html
 
           if [ -d "Images" ]; then
             cp -R Images www/
@@ -69,18 +70,13 @@ jobs:
             cp -R assets www/
           fi
 
-          find . -maxdepth 1 -type f \
-            \( -name "*.pdf" -o -name "*.ino" -o -name "*.html" \) \
-            ! -name "index.html" \
-            -exec cp {} www/ \;
-
       - name: Create Android project
         run: npx cap add android
 
-      - name: Sync Capacitor Android
+      - name: Sync Android project
         run: npx cap sync android
 
-      - name: Build APK
+      - name: Build Android APK
         working-directory: android
         run: |
           chmod +x gradlew
