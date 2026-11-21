@@ -314,6 +314,39 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
          .catch(function (e) { setStatus("err", "Relay write failed: " + e.message); });
   }
 
+  // Send the dashboard's current testing information to the ESP32 OLED.
+  // These are additional BLE text commands; existing dashboard commands remain unchanged.
+  var lastOledPayload = "";
+  function syncOLEDStatus() {
+    if (!bleRx) return;
+
+    var p = ports[activePortIndex];
+    var S = p.ses;
+    var testing = !!(p.master && S && !S.ended);
+    var soc = -1;
+
+    if (testing && isNum(S.soc)) {
+      soc = Math.round(clamp(S.soc, 0, 100));
+    } else if (p.live && isNum(p.V)) {
+      soc = Math.round(clamp(computeSmoothedSoc(p), 0, 100));
+    }
+
+    var testStatus = !testing ? "IDLE" :
+      (p.an && p.an.ready ? "COMPLETE" : "TESTING");
+    var healthStatus = !testing ? "N/A" :
+      (p.an && p.an.ready ? LEVELS[p.an.level - 1] : "ANALYSING");
+    var portStatus = p.i === 0 ? "A" : "B";
+
+    var payload = [portStatus, testStatus, healthStatus, soc].join("|");
+    if (payload === lastOledPayload) return;
+    lastOledPayload = payload;
+
+    bleSend("PORT:" + portStatus);
+    if (soc >= 0) bleSend("SOC:" + soc);
+    bleSend("TEST:" + testStatus);
+    bleSend("HEALTH:" + healthStatus);
+  }
+
   function setMainPower(on) {
     mainPowerState = on;
     bleSend(on ? "RELAY1:OFF" : "RELAY1:ON");
@@ -726,6 +759,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
         setStatus("ok", "Connected — Waiting for Telemetry...");
         $("ble-connect").disabled = true; $("ble-disconnect").disabled = false;
         setMainPower(true);
+        lastOledPayload = "";
+        syncOLEDStatus();
       })
       .catch(function (e) { setStatus("err", "Connection failed: " + e.message); });
   });
@@ -737,7 +772,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
   });
 
   function onDisc() {
-    bleChar = null; bleRx = null; setStatus("", "Disconnected");
+    bleChar = null; bleRx = null; lastOledPayload = ""; setStatus("", "Disconnected");
     $("ble-connect").disabled = false; $("ble-disconnect").disabled = true;
   }
 
@@ -919,6 +954,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
     renderQuality();
     renderDiagnostics();
     drawAll();
+    syncOLEDStatus();
   }
 
   function renderDiagnostics() {
