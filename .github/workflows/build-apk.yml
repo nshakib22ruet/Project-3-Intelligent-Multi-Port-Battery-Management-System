@@ -1,0 +1,95 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configure Android SDK
+        run: |
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses || true
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Prepare website files
+        run: |
+          mkdir -p www
+          cp index.html www/
+
+          if [ -d "Images" ]; then
+            cp -R Images www/
+          fi
+
+          if [ -d "images" ]; then
+            cp -R images www/
+          fi
+
+          if [ -d "assets" ]; then
+            cp -R assets www/
+          fi
+
+          find . -maxdepth 1 -type f \
+            \( -name "*.pdf" -o -name "*.ino" -o -name "*.html" \) \
+            ! -name "index.html" \
+            -exec cp {} www/ \;
+
+      - name: Create Android project
+        run: npx cap add android --no-interactive
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Smart-Battery-Management-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
