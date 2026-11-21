@@ -35,11 +35,16 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK licenses
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || \
+          yes | /usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager --licenses || true
+
       - name: Install Capacitor and build Android project
         run: |
           npm install
           if [ ! -d "android" ]; then
-            npx cap add android
+            npx cap add android --no-interactive
           fi
           npx cap sync android
 
