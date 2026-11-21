@@ -1,5 +1,6 @@
 {
-  "appId": "com.nshakib22ruet.multibms",
-  "appName": "Multi-Port BMS",
-  "webDir": "www"
+  "appId": "com.nshakib.batterymanagement",
+  "appName": "Smart Battery Management",
+  "webDir": "www",
+  "bundledWebRuntime": false
 }
