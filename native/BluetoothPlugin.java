@@ -1,5 +1,5 @@
 
-package com.nshakib.batterymanagement;
+package com.nshakib22ruet.batterymanagement;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -10,15 +10,13 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -32,25 +30,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @CapacitorPlugin(
-    name = "BluetoothPlugin",
+    name = "BatteryBluetooth",
     permissions = {
         @Permission(
-            alias = "bluetoothScan",
-            strings = { Manifest.permission.BLUETOOTH_SCAN }
-        ),
-        @Permission(
-            alias = "bluetoothConnect",
-            strings = { Manifest.permission.BLUETOOTH_CONNECT }
-        ),
-        @Permission(
-            alias = "location",
-            strings = { Manifest.permission.ACCESS_FINE_LOCATION }
+            alias = "bluetooth",
+            strings = {
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT
+            }
         )
     }
 )
 public class BluetoothPlugin extends Plugin {
-
-    private static final String DEVICE_PREFIX = "Smart_Battery";
 
     private static final UUID SERVICE_UUID =
         UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
@@ -65,177 +56,117 @@ public class BluetoothPlugin extends Plugin {
         UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private BluetoothGatt bluetoothGatt;
-    private BluetoothGattCharacteristic txCharacteristic;
     private BluetoothGattCharacteristic rxCharacteristic;
 
     private BluetoothLeScanner scanner;
     private ScanCallback scanCallback;
-    private PluginCall pendingScanCall;
 
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private PluginCall pendingConnectCall;
+    private String connectedDeviceId;
 
     @PluginMethod
-    public void scan(PluginCall call) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            requestPermissionForAliases(
-                new String[]{"bluetoothScan", "bluetoothConnect"},
-                call,
-                "scanPermissionCallback"
-            );
-        } else {
-            requestPermissionForAlias("location", call, "scanPermissionCallback");
+    public void connect(PluginCall call) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            getContext().checkSelfPermission(
+                Manifest.permission.BLUETOOTH_SCAN
+            ) != PackageManager.PERMISSION_GRANTED) {
+
+            pendingConnectCall = call;
+            requestPermissionForAlias("bluetooth", call, "bluetoothPermission");
+            return;
         }
+
+        startScan(call);
     }
 
     @PermissionCallback
-    private void scanPermissionCallback(PluginCall call) {
+    private void bluetoothPermission(PluginCall call) {
+
+        if (getPermissionState("bluetooth") !=
+            com.getcapacitor.PermissionState.GRANTED) {
+
+            call.reject("Bluetooth permission denied");
+            return;
+        }
+
         startScan(call);
     }
 
     private void startScan(PluginCall call) {
+
         BluetoothManager manager =
-            (BluetoothManager) getContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            (BluetoothManager) getContext().getSystemService(
+                Context.BLUETOOTH_SERVICE
+            );
 
         BluetoothAdapter adapter = manager.getAdapter();
 
         if (adapter == null || !adapter.isEnabled()) {
-            call.reject("Please turn on Bluetooth.");
+            call.reject("Please turn on Bluetooth");
             return;
         }
 
         scanner = adapter.getBluetoothLeScanner();
 
         if (scanner == null) {
-            call.reject("Bluetooth scanner is unavailable.");
+            call.reject("Bluetooth scanner unavailable");
             return;
         }
 
-        if (pendingScanCall != null) {
-            stopCurrentScan();
-        }
-
-        pendingScanCall = call;
-
-        ScanSettings settings = new ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-            .build();
+        pendingConnectCall = call;
 
         scanCallback = new ScanCallback() {
+
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
+
                 BluetoothDevice device = result.getDevice();
-                String name = device.getName();
 
-                if (name == null || !name.startsWith(DEVICE_PREFIX)) {
-                    return;
-                }
+                String deviceName = device.getName();
 
-                stopCurrentScan();
+                if (deviceName != null &&
+                    deviceName.startsWith("Smart_Battery")) {
 
-                JSObject response = new JSObject();
-                response.put("deviceId", device.getAddress());
-                response.put("name", name);
+                    scanner.stopScan(this);
 
-                if (pendingScanCall != null) {
-                    pendingScanCall.resolve(response);
-                    pendingScanCall = null;
+                    connectDevice(device, call);
                 }
             }
 
             @Override
             public void onScanFailed(int errorCode) {
-                stopCurrentScan();
 
-                if (pendingScanCall != null) {
-                    pendingScanCall.reject("Bluetooth scan failed: " + errorCode);
-                    pendingScanCall = null;
-                }
+                call.reject("Bluetooth scan failed: " + errorCode);
             }
         };
 
-        try {
-            scanner.startScan(null, settings, scanCallback);
-
-            handler.postDelayed(() -> {
-                if (pendingScanCall == call) {
-                    stopCurrentScan();
-                    pendingScanCall = null;
-                    call.reject("No Smart_Battery device found. Check ESP32.");
-                }
-            }, 15000);
-
-        } catch (SecurityException e) {
-            stopCurrentScan();
-            pendingScanCall = null;
-            call.reject("Bluetooth permission denied.");
-        }
+        scanner.startScan(scanCallback);
     }
 
-    private void stopCurrentScan() {
-        if (scanner != null && scanCallback != null) {
-            try {
-                scanner.stopScan(scanCallback);
-            } catch (Exception ignored) {
-            }
-        }
-        scanCallback = null;
-    }
+    private void connectDevice(
+        BluetoothDevice device,
+        PluginCall call
+    ) {
 
-    @PluginMethod
-    public void connect(PluginCall call) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            requestPermissionForAlias(
-                "bluetoothConnect",
-                call,
-                "connectPermissionCallback"
-            );
-        } else {
-            connectNow(call);
-        }
-    }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            getContext().checkSelfPermission(
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) != PackageManager.PERMISSION_GRANTED) {
 
-    @PermissionCallback
-    private void connectPermissionCallback(PluginCall call) {
-        connectNow(call);
-    }
-
-    private void connectNow(PluginCall call) {
-        String address = call.getString("deviceId");
-
-        if (address == null || address.isEmpty()) {
-            call.reject("Device ID is missing.");
+            call.reject("Bluetooth connect permission missing");
             return;
         }
 
-        try {
-            BluetoothManager manager =
-                (BluetoothManager) getContext().getSystemService(Context.BLUETOOTH_SERVICE);
-
-            BluetoothAdapter adapter = manager.getAdapter();
-            BluetoothDevice device = adapter.getRemoteDevice(address);
-
-            bluetoothGatt = device.connectGatt(
-                getContext(),
-                false,
-                gattCallback,
-                BluetoothDevice.TRANSPORT_LE
-            );
-
-            if (bluetoothGatt == null) {
-                call.reject("Could not start BLE connection.");
-                return;
-            }
-
-            pendingConnectCall = call;
-
-        } catch (Exception e) {
-            call.reject("Connection failed: " + e.getMessage());
-        }
+        bluetoothGatt = device.connectGatt(
+            getContext(),
+            false,
+            gattCallback
+        );
     }
 
-    private PluginCall pendingConnectCall;
-
-    private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+    private final BluetoothGattCallback gattCallback =
+        new BluetoothGattCallback() {
 
         @Override
         public void onConnectionStateChange(
@@ -243,77 +174,84 @@ public class BluetoothPlugin extends Plugin {
             int status,
             int newState
         ) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
+
+            if (status == BluetoothGatt.GATT_SUCCESS &&
+                newState == BluetoothProfile.STATE_CONNECTED) {
+
+                connectedDeviceId = gatt.getDevice().getAddress();
+
                 gatt.discoverServices();
 
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                txCharacteristic = null;
-                rxCharacteristic = null;
+            } else if (
+                newState == BluetoothProfile.STATE_DISCONNECTED
+            ) {
 
-                JSObject data = new JSObject();
-                data.put("connected", false);
-                notifyListeners("bleDisconnected", data);
+                notifyListeners("disconnected", new JSObject());
 
-                if (pendingConnectCall != null) {
-                    pendingConnectCall.reject("BLE device disconnected.");
-                    pendingConnectCall = null;
-                }
+                closeGatt();
             }
         }
 
         @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+        public void onServicesDiscovered(
+            BluetoothGatt gatt,
+            int status
+        ) {
+
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                if (pendingConnectCall != null) {
-                    pendingConnectCall.reject("Could not discover BLE services.");
-                    pendingConnectCall = null;
-                }
+                rejectPending("Could not discover ESP32 services");
                 return;
             }
 
-            BluetoothGattService service = gatt.getService(SERVICE_UUID);
+            android.bluetooth.BluetoothGattService service =
+                gatt.getService(SERVICE_UUID);
 
             if (service == null) {
-                if (pendingConnectCall != null) {
-                    pendingConnectCall.reject("Required BLE service not found.");
-                    pendingConnectCall = null;
-                }
+                rejectPending("ESP32 BLE UART service not found");
+                closeGatt();
                 return;
             }
 
-            txCharacteristic = service.getCharacteristic(TX_UUID);
             rxCharacteristic = service.getCharacteristic(RX_UUID);
 
-            if (txCharacteristic == null || rxCharacteristic == null) {
-                if (pendingConnectCall != null) {
-                    pendingConnectCall.reject("BLE characteristics not found.");
-                    pendingConnectCall = null;
-                }
+            BluetoothGattCharacteristic txCharacteristic =
+                service.getCharacteristic(TX_UUID);
+
+            if (rxCharacteristic == null ||
+                txCharacteristic == null) {
+
+                rejectPending("BLE UART characteristics not found");
+                closeGatt();
                 return;
             }
 
-            if (pendingConnectCall != null) {
-                pendingConnectCall.resolve();
-                pendingConnectCall = null;
+            boolean notificationEnabled =
+                gatt.setCharacteristicNotification(
+                    txCharacteristic,
+                    true
+                );
+
+            BluetoothGattDescriptor descriptor =
+                txCharacteristic.getDescriptor(CCCD_UUID);
+
+            if (descriptor == null || !notificationEnabled) {
+                rejectPending("Could not enable BLE notifications");
+                closeGatt();
+                return;
             }
-        }
 
-        @Override
-        public void onCharacteristicChanged(
-            BluetoothGatt gatt,
-            BluetoothGattCharacteristic characteristic
-        ) {
-            byte[] value = characteristic.getValue();
-            sendNotification(value);
-        }
+            descriptor.setValue(
+                BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            );
 
-        @Override
-        public void onCharacteristicChanged(
-            BluetoothGatt gatt,
-            BluetoothGattCharacteristic characteristic,
-            byte[] value
-        ) {
-            sendNotification(value);
+            if (Build.VERSION.SDK_INT >= 33) {
+                gatt.writeDescriptor(
+                    descriptor,
+                    BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                );
+            } else {
+                gatt.writeDescriptor(descriptor);
+            }
         }
 
         @Override
@@ -322,149 +260,142 @@ public class BluetoothPlugin extends Plugin {
             BluetoothGattDescriptor descriptor,
             int status
         ) {
-            if (pendingNotifyCall != null) {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    pendingNotifyCall.resolve();
-                } else {
-                    pendingNotifyCall.reject("Could not enable BLE notifications.");
+
+            if (descriptor.getUuid().equals(CCCD_UUID) &&
+                status == BluetoothGatt.GATT_SUCCESS) {
+
+                if (pendingConnectCall != null) {
+
+                    JSObject result = new JSObject();
+                    result.put("deviceId", connectedDeviceId);
+
+                    pendingConnectCall.resolve(result);
+                    pendingConnectCall = null;
                 }
-                pendingNotifyCall = null;
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(
+            BluetoothGatt gatt,
+            BluetoothGattCharacteristic characteristic,
+            byte[] value
+        ) {
+
+            if (characteristic.getUuid().equals(TX_UUID)) {
+
+                String data = new String(
+                    value,
+                    StandardCharsets.UTF_8
+                );
+
+                JSObject event = new JSObject();
+                event.put("value", data);
+
+                notifyListeners("dataReceived", event);
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(
+            BluetoothGatt gatt,
+            BluetoothGattCharacteristic characteristic
+        ) {
+
+            if (Build.VERSION.SDK_INT < 33) {
+
+                byte[] value = characteristic.getValue();
+
+                if (value != null) {
+
+                    String data = new String(
+                        value,
+                        StandardCharsets.UTF_8
+                    );
+
+                    JSObject event = new JSObject();
+                    event.put("value", data);
+
+                    notifyListeners("dataReceived", event);
+                }
             }
         }
     };
 
-    private void sendNotification(byte[] value) {
-        if (value == null) return;
-
-        JSObject data = new JSObject();
-        data.put("value", new String(value, StandardCharsets.UTF_8));
-        notifyListeners("bleData", data);
-    }
-
-    private PluginCall pendingNotifyCall;
-
-    @PluginMethod
-    public void startNotifications(PluginCall call) {
-        if (bluetoothGatt == null || txCharacteristic == null) {
-            call.reject("BLE device is not connected.");
-            return;
-        }
-
-        try {
-            bluetoothGatt.setCharacteristicNotification(txCharacteristic, true);
-
-            BluetoothGattDescriptor descriptor =
-                txCharacteristic.getDescriptor(CCCD_UUID);
-
-            if (descriptor == null) {
-                call.reject("Notification descriptor not found.");
-                return;
-            }
-
-            pendingNotifyCall = call;
-
-            if (Build.VERSION.SDK_INT >= 33) {
-                int result = bluetoothGatt.writeDescriptor(
-                    descriptor,
-                    BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                );
-
-                if (result != BluetoothStatusCodes.SUCCESS) {
-                    pendingNotifyCall = null;
-                    call.reject("Could not enable notifications.");
-                }
-            } else {
-                descriptor.setValue(
-                    BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                );
-
-                if (!bluetoothGatt.writeDescriptor(descriptor)) {
-                    pendingNotifyCall = null;
-                    call.reject("Could not enable notifications.");
-                }
-            }
-
-        } catch (Exception e) {
-            pendingNotifyCall = null;
-            call.reject("Notification error: " + e.getMessage());
-        }
-    }
-
     @PluginMethod
     public void write(PluginCall call) {
-        if (bluetoothGatt == null || rxCharacteristic == null) {
-            call.reject("BLE device is not connected.");
+
+        String value = call.getString("value");
+
+        if (value == null || rxCharacteristic == null ||
+            bluetoothGatt == null) {
+
+            call.reject("Bluetooth is not connected");
             return;
         }
 
-        String value = call.getString("value", "");
+        byte[] data = value.getBytes(StandardCharsets.UTF_8);
 
-        try {
-            byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        if (Build.VERSION.SDK_INT >= 33) {
 
-            int properties = rxCharacteristic.getProperties();
+            int result = bluetoothGatt.writeCharacteristic(
+                rxCharacteristic,
+                data,
+                BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            );
 
-            if ((properties & BluetoothGattCharacteristic.PROPERTY_WRITE) == 0
-                && (properties & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) == 0) {
-                call.reject("BLE characteristic does not support writing.");
+            if (result != BluetoothStatusCodes.SUCCESS) {
+                call.reject("Bluetooth write failed: " + result);
                 return;
             }
 
-            if (Build.VERSION.SDK_INT >= 33) {
-                int writeType =
-                    (properties & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
-                    ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                    : BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;
+        } else {
 
-                int result = bluetoothGatt.writeCharacteristic(
-                    rxCharacteristic,
-                    bytes,
-                    writeType
-                );
+            rxCharacteristic.setWriteType(
+                BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            );
 
-                if (result == BluetoothStatusCodes.SUCCESS) {
-                    call.resolve();
-                } else {
-                    call.reject("BLE write failed: " + result);
-                }
+            rxCharacteristic.setValue(data);
 
-            } else {
-                rxCharacteristic.setWriteType(
-                    (properties & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
-                    ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                    : BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                );
-
-                rxCharacteristic.setValue(bytes);
-
-                if (bluetoothGatt.writeCharacteristic(rxCharacteristic)) {
-                    call.resolve();
-                } else {
-                    call.reject("BLE write could not be started.");
-                }
+            if (!bluetoothGatt.writeCharacteristic(rxCharacteristic)) {
+                call.reject("Bluetooth write failed");
+                return;
             }
-
-        } catch (Exception e) {
-            call.reject("Write error: " + e.getMessage());
         }
+
+        call.resolve();
     }
 
     @PluginMethod
     public void disconnect(PluginCall call) {
-        try {
-            if (bluetoothGatt != null) {
-                bluetoothGatt.disconnect();
-                bluetoothGatt.close();
-                bluetoothGatt = null;
-            }
 
-            txCharacteristic = null;
-            rxCharacteristic = null;
+        closeGatt();
+        call.resolve();
+    }
 
-            call.resolve();
+    private void rejectPending(String message) {
 
-        } catch (Exception e) {
-            call.reject("Disconnect error: " + e.getMessage());
+        if (pendingConnectCall != null) {
+            pendingConnectCall.reject(message);
+            pendingConnectCall = null;
         }
+    }
+
+    private void closeGatt() {
+
+        if (bluetoothGatt != null) {
+            bluetoothGatt.disconnect();
+            bluetoothGatt.close();
+            bluetoothGatt = null;
+        }
+
+        rxCharacteristic = null;
+        connectedDeviceId = null;
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        closeGatt();
+        super.handleOnDestroy();
     }
 }
