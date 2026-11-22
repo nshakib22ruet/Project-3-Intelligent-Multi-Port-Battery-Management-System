@@ -156,13 +156,11 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
 .key{display:inline-flex;gap:12px;font:10px "JetBrains Mono",monospace}
 .key i{display:inline-block;width:10px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
 
-/* Desktop layout */
 @media (min-width:901px) {
   .swipe-track{display:grid;gap:12px}
   .swipe-page{display:grid;gap:12px}
 }
 
-/* Full-Screen Phone / App Mode: Zero extra blank space, zero extra up/down scroll, smooth horizontal & vertical page swipe */
 @media (max-width:900px) {
   html,body{
     height:100dvh;
@@ -216,7 +214,6 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
     overflow:hidden;
   }
 
-  /* Page 1: Port Management fills screen cleanly */
   .swipe-page[data-page="0"] .conn{
     padding:6px 8px;
     gap:6px;
@@ -266,7 +263,6 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
   .swipe-page[data-page="0"] .foot{padding-top:4px;gap:6px}
   .swipe-page[data-page="0"] .msg{font-size:9px;line-height:1.3}
 
-  /* Page 2: Quality + Electrical Condition fill screen cleanly */
   .swipe-page[data-page="1"] .quality{
     padding:8px 10px;
     gap:8px;
@@ -295,7 +291,6 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
   .swipe-page[data-page="1"] .diag-item b{font-size:10px;margin-top:2px}
   .swipe-page[data-page="1"] .diag-note{font-size:9px;line-height:1.3;margin-top:6px}
 
-  /* Page 3: All 3 Graphs stacked vertically filling screen cleanly */
   .swipe-page[data-page="2"] .charts{
     flex:1;
     min-height:0;
@@ -354,7 +349,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
 
   <div class="swipe-viewport" id="swipe-viewport">
     <div class="swipe-track" id="swipe-track">
-      <!-- PAGE 1: Port Management (Connection, Active Port Selector & Port A/B Control Card) -->
+      <!-- PAGE 1: Port Management -->
       <div class="swipe-page" data-page="0">
         <section class="conn">
           <button class="btn" id="ble-connect" type="button">Pair ESP32</button>
@@ -376,7 +371,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
         <section class="single-port-container" id="ports"></section>
       </div>
 
-      <!-- PAGE 2: Quality (Battery Quality Verdict/LEDs & Battery Electrical Condition) -->
+      <!-- PAGE 2: Quality -->
       <div class="swipe-page" data-page="1">
         <section class="quality" aria-live="polite">
           <div>
@@ -414,7 +409,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
         </section>
       </div>
 
-      <!-- PAGE 3: Graph (All 3 Graphs Stacked Vertically) -->
+      <!-- PAGE 3: Graph -->
       <div class="swipe-page" data-page="2">
         <section class="charts">
           <div class="chead">
@@ -478,7 +473,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
   var isNum = function (v) { return typeof v === "number" && isFinite(v); };
 
-  // --- PWA / App Manifest & Offline Cache Setup (Web + App on GitHub Pages) ---
+  // --- PWA / App Manifest & Offline Cache Setup ---
   (function initAppManifestAndSW() {
     try {
       var iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="#070f1c"/><rect x="52" y="24" width="88" height="20" rx="6" fill="#5fb0ff"/><rect x="34" y="44" width="124" height="124" rx="16" fill="none" stroke="#3f8ae0" stroke-width="10"/><rect x="48" y="88" width="96" height="66" rx="8" fill="#35c98d"/><path d="M104 62L74 106h20l-8 32 34-46h-20z" fill="#070f1c"/></svg>';
@@ -633,7 +628,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
     }, { passive: true });
   })();
 
-  // --- Original Logic (Unchanged) ---
+  // --- Battery & Telemetry Logic ---
   var REGRESSION_REQUIRED_POINTS = 90;
   var REST_PERIOD_MS = 30000;
   var SOC_SMOOTHING_WINDOW = 30;
@@ -693,12 +688,27 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
   var mainPowerState = false;
   var activePortIndex = 0;
   var bleChar = null, bleRx = null, bleDev = null;
+  var nativeDeviceId = null;
+  var isNativeCap = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 
   var q = Promise.resolve();
   function bleSend(txt) {
     if (!bleRx) return;
-    q = q.then(function () { return bleRx.writeValue(new TextEncoder().encode(txt + "\n")); })
-         .catch(function (e) { setStatus("err", "Relay write failed: " + e.message); });
+    q = q.then(function () {
+      var bytes = new TextEncoder().encode(txt + "\n");
+      if (bleRx.isNativeCap && bleRx.bleClient) {
+        return bleRx.bleClient.write({
+          deviceId: nativeDeviceId,
+          service: SVC,
+          characteristic: RX,
+          value: Array.from(bytes)
+        });
+      }
+      if (bleRx.isCustomPlugin && window.BluetoothPlugin) {
+        return window.BluetoothPlugin.write({ value: txt + "\n" });
+      }
+      return bleRx.writeValue(bytes);
+    }).catch(function (e) { setStatus("err", "Relay write failed: " + (e.message || e)); });
   }
 
   var lastOledPayload = "";
@@ -1108,7 +1118,54 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
     $("status-text").textContent = msg;
   }
 
+  function onConnectedSuccess() {
+    setStatus("ok", "Connected — Waiting for Telemetry...");
+    $("ble-connect").disabled = true; $("ble-disconnect").disabled = false;
+    setMainPower(true);
+    lastOledPayload = "";
+    syncOLEDStatus();
+  }
+
   $("ble-connect").addEventListener("click", function () {
+    var capBle = window.Capacitor && window.Capacitor.Plugins && (window.Capacitor.Plugins.BluetoothLe || window.Capacitor.Plugins.BluetoothPlugin);
+    if (isNativeCap || capBle) {
+      var BleClient = window.Capacitor.Plugins.BluetoothLe;
+      if (BleClient) {
+        setStatus("busy", "Initializing Android Bluetooth...");
+        buf = "";
+        BleClient.initialize({ androidNeverForLocation: true })
+          .then(function () {
+            setStatus("busy", "Scanning for Smart_Battery...");
+            return BleClient.requestDevice({ namePrefix: "Smart_Battery", optionalServices: [SVC] });
+          })
+          .then(function (device) {
+            nativeDeviceId = device.deviceId;
+            setStatus("busy", "Connecting to " + (device.name || "ESP32") + "...");
+            return BleClient.connect({ deviceId: nativeDeviceId });
+          })
+          .then(function () {
+            return BleClient.startNotifications({
+              deviceId: nativeDeviceId,
+              service: SVC,
+              characteristic: TX
+            }, function (res) {
+              if (res && res.value) {
+                var arr = new Uint8Array(res.value);
+                feed(dec.decode(arr, { stream: true }));
+              }
+            });
+          })
+          .then(function () {
+            bleRx = { isNativeCap: true, bleClient: BleClient };
+            onConnectedSuccess();
+          })
+          .catch(function (e) {
+            setStatus("err", "BLE Error: " + (e.message || JSON.stringify(e)));
+          });
+        return;
+      }
+    }
+
     if (!navigator.bluetooth) { setStatus("err", "Web Bluetooth not supported."); return; }
     setStatus("busy", "Opening Bluetooth Picker...");
     navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "Smart_Battery" }], optionalServices: [SVC] })
@@ -1120,24 +1177,23 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
         bleChar.addEventListener("characteristicvaluechanged", function (e) { feed(dec.decode(e.target.value, { stream: true })); });
         return bleChar.startNotifications();
       })
-      .then(function () {
-        setStatus("ok", "Connected — Waiting for Telemetry...");
-        $("ble-connect").disabled = true; $("ble-disconnect").disabled = false;
-        setMainPower(true);
-        lastOledPayload = "";
-        syncOLEDStatus();
-      })
+      .then(onConnectedSuccess)
       .catch(function (e) { setStatus("err", "Connection failed: " + e.message); });
   });
 
   $("ble-disconnect").addEventListener("click", function () {
     setMainPower(false);
     ports.forEach(function (p) { if (p.master) stopPort(p); });
-    q.then(function () { if (bleDev && bleDev.gatt.connected) bleDev.gatt.disconnect(); });
+    q.then(function () {
+      if (bleRx && bleRx.isNativeCap && bleRx.bleClient && nativeDeviceId) {
+        return bleRx.bleClient.disconnect({ deviceId: nativeDeviceId }).then(onDisc);
+      }
+      if (bleDev && bleDev.gatt.connected) bleDev.gatt.disconnect();
+    });
   });
 
   function onDisc() {
-    bleChar = null; bleRx = null; lastOledPayload = ""; setStatus("", "Disconnected");
+    bleChar = null; bleRx = null; nativeDeviceId = null; lastOledPayload = ""; setStatus("", "Disconnected");
     $("ble-connect").disabled = false; $("ble-disconnect").disabled = true;
   }
 
