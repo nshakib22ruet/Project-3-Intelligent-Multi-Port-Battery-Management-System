@@ -61,8 +61,7 @@ jobs:
           [ ! -d images ] || cp -R images www/
 
       - name: Create Android project
-        run: npx cap add android --no-interactive
-
+        run: npx cap add android
       - name: Copy custom Bluetooth plugin
         run: |
           mkdir -p android/app/src/main/java/com/nshakib22ruet/batterymanagement
