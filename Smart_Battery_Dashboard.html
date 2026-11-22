@@ -689,13 +689,28 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
   var activePortIndex = 0;
   var bleChar = null, bleRx = null, bleDev = null;
   var nativeDeviceId = null;
+  var nativeBlePlugin = null, nativeDataListener = null, nativeDisconnectListener = null;
   var isNativeCap = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  // Native Android bridge used by the APK build (implemented in the companion Android files).
+  // Expected plugin: BatteryBluetooth with connect/write/disconnect and dataReceived/disconnected events.
+  function getNativeBluetoothPlugin() {
+    var plugins = window.Capacitor && window.Capacitor.Plugins;
+    return plugins && (plugins.BatteryBluetooth || plugins.BluetoothPlugin) || window.BatteryBluetoothPlugin || null;
+  }
+  function clearNativeListeners() {
+    try { if (nativeDataListener && nativeDataListener.remove) nativeDataListener.remove(); } catch (e) {}
+    try { if (nativeDisconnectListener && nativeDisconnectListener.remove) nativeDisconnectListener.remove(); } catch (e) {}
+    nativeDataListener = null; nativeDisconnectListener = null;
+  }
 
   var q = Promise.resolve();
   function bleSend(txt) {
     if (!bleRx) return;
     q = q.then(function () {
       var bytes = new TextEncoder().encode(txt + "\n");
+      if (bleRx.isNativeBridge && nativeBlePlugin) {
+        return nativeBlePlugin.write({ value: txt + "\n" });
+      }
       if (bleRx.isNativeCap && bleRx.bleClient) {
         return bleRx.bleClient.write({
           deviceId: nativeDeviceId,
@@ -703,9 +718,6 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
           characteristic: RX,
           value: Array.from(bytes)
         });
-      }
-      if (bleRx.isCustomPlugin && window.BluetoothPlugin) {
-        return window.BluetoothPlugin.write({ value: txt + "\n" });
       }
       return bleRx.writeValue(bytes);
     }).catch(function (e) { setStatus("err", "Relay write failed: " + (e.message || e)); });
@@ -1127,46 +1139,40 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
   }
 
   $("ble-connect").addEventListener("click", function () {
-    var capBle = window.Capacitor && window.Capacitor.Plugins && (window.Capacitor.Plugins.BluetoothLe || window.Capacitor.Plugins.BluetoothPlugin);
-    if (isNativeCap || capBle) {
-      var BleClient = window.Capacitor.Plugins.BluetoothLe;
-      if (BleClient) {
-        setStatus("busy", "Initializing Android Bluetooth...");
-        buf = "";
-        BleClient.initialize({ androidNeverForLocation: true })
-          .then(function () {
-            setStatus("busy", "Scanning for Smart_Battery...");
-            return BleClient.requestDevice({ namePrefix: "Smart_Battery", optionalServices: [SVC] });
-          })
-          .then(function (device) {
-            nativeDeviceId = device.deviceId;
-            setStatus("busy", "Connecting to " + (device.name || "ESP32") + "...");
-            return BleClient.connect({ deviceId: nativeDeviceId });
-          })
-          .then(function () {
-            return BleClient.startNotifications({
-              deviceId: nativeDeviceId,
-              service: SVC,
-              characteristic: TX
-            }, function (res) {
-              if (res && res.value) {
-                var arr = new Uint8Array(res.value);
-                feed(dec.decode(arr, { stream: true }));
-              }
-            });
-          })
-          .then(function () {
-            bleRx = { isNativeCap: true, bleClient: BleClient };
-            onConnectedSuccess();
-          })
-          .catch(function (e) {
-            setStatus("err", "BLE Error: " + (e.message || JSON.stringify(e)));
-          });
-        return;
+    // Prefer the native Bluetooth bridge inside the Android APK. It avoids Web Bluetooth
+    // restrictions in WebView and supports the native device-picker workflow.
+    nativeBlePlugin = getNativeBluetoothPlugin();
+    if (isNativeCap && nativeBlePlugin && typeof nativeBlePlugin.connect === "function") {
+      setStatus("busy", "Opening Android Bluetooth device picker...");
+      buf = "";
+      clearNativeListeners();
+      var listenersReady = Promise.resolve();
+      if (typeof nativeBlePlugin.addListener === "function") {
+        listenersReady = Promise.all([
+          nativeBlePlugin.addListener("dataReceived", function (ev) {
+            if (ev && ev.value != null) feed(String(ev.value));
+          }).then(function (h) { nativeDataListener = h; }),
+          nativeBlePlugin.addListener("disconnected", function () { onDisc(); })
+            .then(function (h) { nativeDisconnectListener = h; })
+        ]);
       }
+      listenersReady.then(function () {
+        return nativeBlePlugin.connect({ namePrefix: "Smart_Battery", service: SVC });
+      }).then(function (result) {
+        nativeDeviceId = result && (result.deviceId || result.id) || "native-esp32";
+        bleRx = { isNativeBridge: true, plugin: nativeBlePlugin };
+        onConnectedSuccess();
+      }).catch(function (e) {
+        clearNativeListeners();
+        bleRx = null;
+        setStatus("err", "Android Bluetooth connection failed: " + (e && e.message ? e.message : e));
+        $("ble-connect").disabled = false; $("ble-disconnect").disabled = true;
+      });
+      return;
     }
 
-    if (!navigator.bluetooth) { setStatus("err", "Web Bluetooth not supported."); return; }
+    // Existing Web Bluetooth path for compatible browsers.
+    if (!navigator.bluetooth) { setStatus("err", "Bluetooth is unavailable here. Open the APK or use a Web Bluetooth-compatible browser."); return; }
     setStatus("busy", "Opening Bluetooth Picker...");
     navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "Smart_Battery" }], optionalServices: [SVC] })
       .then(function (d) { bleDev = d; d.addEventListener("gattserverdisconnected", onDisc); setStatus("busy", "Connecting..."); return d.gatt.connect(); })
@@ -1178,22 +1184,27 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;background:var(--blue
         return bleChar.startNotifications();
       })
       .then(onConnectedSuccess)
-      .catch(function (e) { setStatus("err", "Connection failed: " + e.message); });
+      .catch(function (e) { setStatus("err", "Connection failed: " + (e && e.message ? e.message : e)); });
   });
 
   $("ble-disconnect").addEventListener("click", function () {
     setMainPower(false);
     ports.forEach(function (p) { if (p.master) stopPort(p); });
     q.then(function () {
+      if (bleRx && bleRx.isNativeBridge && nativeBlePlugin) {
+        return Promise.resolve(nativeBlePlugin.disconnect({ deviceId: nativeDeviceId })).then(onDisc);
+      }
       if (bleRx && bleRx.isNativeCap && bleRx.bleClient && nativeDeviceId) {
         return bleRx.bleClient.disconnect({ deviceId: nativeDeviceId }).then(onDisc);
       }
-      if (bleDev && bleDev.gatt.connected) bleDev.gatt.disconnect();
+      if (bleDev && bleDev.gatt && bleDev.gatt.connected) bleDev.gatt.disconnect();
     });
   });
 
   function onDisc() {
-    bleChar = null; bleRx = null; nativeDeviceId = null; lastOledPayload = ""; setStatus("", "Disconnected");
+    clearNativeListeners();
+    bleChar = null; bleRx = null; bleDev = null; nativeDeviceId = null; nativeBlePlugin = null;
+    lastOledPayload = ""; setStatus("", "Disconnected");
     $("ble-connect").disabled = false; $("ble-disconnect").disabled = true;
   }
 
