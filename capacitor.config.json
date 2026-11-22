@@ -1,6 +1,9 @@
 {
-  "appId": "com.nshakib.batterymanagement",
-  "appName": "Smart Battery Management",
+  "appId": "com.ruet.smartbatterytester",
+  "appName": "Smart Battery Tester",
   "webDir": "www",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
 }
