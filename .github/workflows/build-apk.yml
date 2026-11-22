@@ -1,4 +1,5 @@
-name: Build Android APK
+
+name: Build Smart Battery Android APK
 
 on:
   workflow_dispatch:
@@ -14,10 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,38 +22,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: 17
 
-      - name: Configure Android SDK
-        run: |
-          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-
-      - name: Accept Android SDK licenses
-        run: |
-          yes | sdkmanager --licenses || true
-
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare dashboard for Android
+      - name: Prepare dashboard
         run: |
           mkdir -p www
-
-          cp "Smart_Battery_Dashboard.html" www/index.html
+          cp Smart_Battery_Dashboard.html www/index.html
 
           if [ -d "Images" ]; then
             cp -R Images www/
@@ -70,13 +54,16 @@ jobs:
             cp -R assets www/
           fi
 
-      - name: Create Android project
-        run: npx cap add android
+      - name: Create Android project if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
 
-      - name: Sync Android project
+      - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build Android APK
+      - name: Build Debug APK
         working-directory: android
         run: |
           chmod +x gradlew
